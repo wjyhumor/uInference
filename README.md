@@ -14,8 +14,8 @@ It is working with the Tensorflow backend.
 # Example
 
  1. Run `save_model.py` script. It will produce files with architecture `arch.json` and weights in HDF5 format `weights.h5`.
- 2. Dump network to dat file `python dump_to_cpp.py -a arch.json -w weights.h5 -o dumped_nn.dat`.
- 3. Run `test_keras.py -a arch.json -w weights.h5 -o input.dat`. It will output the predict and actual class based on data in `input.dat` file.
+ 2. Dump network to dat file `python2 convert_to_cpp.py -a save_model.json -w save_weights.h5 -o save.dat`.
+ 3. Run `test_keras.py -a save_model.json -w save_weights.h5 -i save.dat`. It will output the predict and actual class based on data in `input.dat` file.
  4. Compile example `g++ test_main.cpp predict.cpp` - see code in `test_main.cpp`.
  5. Run binary `./a.out dumped_nn.dat input.dat` - you should get the same output as in step one from Keras.
 
@@ -27,3 +27,34 @@ If you want to test dumping for your network, please use `test_run.sh` script. P
  2. Generate random sample and save in inout.dat. First line contains number of features in input, next line contains features and last line contains actual class.
  3. Compute predictions from keras and cpp on generated sample.
  4. Compare predictions.
+
+# DNN
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d_1 (Conv2D)            (None, 16, 16, 8)         208       
+_________________________________________________________________
+batch_normalization_1 (Batch (None, 16, 16, 8)         32        
+_________________________________________________________________
+activation_1 (Activation)    (None, 16, 16, 8)         0         
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 8, 8, 8)           0         
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 8, 8, 16)          3216      
+_________________________________________________________________
+batch_normalization_2 (Batch (None, 8, 8, 16)          64        
+_________________________________________________________________
+activation_2 (Activation)    (None, 8, 8, 16)          0         
+_________________________________________________________________
+max_pooling2d_2 (MaxPooling2 (None, 2, 2, 16)          0         
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 64)                0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 10)                650       
+_________________________________________________________________
+activation_3 (Activation)    (None, 10)                0         
+=================================================================
+Total params: 4,170
+Trainable params: 4,122
+Non-trainable params: 48
+

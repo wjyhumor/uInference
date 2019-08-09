@@ -184,7 +184,7 @@ vector<float> LayerActivation::compute_output(vector<float> test_input) {
 	}
 	else if(activation_type == "softsign") {
 		for (unsigned int k = 0; k < test_input.size(); ++k) {
-			test_input[k] = test_input[k]/(1+abs(test_input[k]));
+			test_input[k] = test_input[k]/(1+fabs(test_input[k]));
 		}
 	}
 	else {

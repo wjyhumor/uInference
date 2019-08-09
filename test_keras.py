@@ -28,7 +28,7 @@ arch = json.loads(arch)
 model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
 
 file_path = args.test_input
-a_file = open(file_path, encoding='utf-8')
+a_file = open(file_path)#, encoding='utf-8')
 n_features = int(float(a_file.readline()))
 X = a_file.readline().split(' ')
 X[-1] = X[-1].replace('\n','')

@@ -4,7 +4,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.models import model_from_json
 # from keras.utils.np_utils import to_categorical
-from keras.utils.visualize_util import plot
+#from keras.utils.visualize_util import plot
 import numpy as np
 
 # fix random seed for reproducibility
@@ -44,5 +44,5 @@ with open("arch.json", "w") as json_file:
     json_file.write(model_json)
 model.save_weights("weights.h5")
 print("Saved model to disk")
-plot(model, to_file='model.png',show_shapes=True)
+#plot(model, to_file='model.png',show_shapes=True)
 import gc; gc.collect()
