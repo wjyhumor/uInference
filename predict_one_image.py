@@ -52,8 +52,8 @@ print("pross list:" + str(predictions[0]) + "\nprossibility:" + str(
     predictions[0][result]) + "\nresult:" + str(result) + "\ntime:" + str(end-start))
 
 
-
-# show outputs
+"""
+# Conv2D
 get_layer_output1 = K.function([model.layers[0].input],
                                [model.layers[3].output])
 layer_output1 = get_layer_output1([test_images])[0]
@@ -62,24 +62,45 @@ get_layer_output2 = K.function([model.layers[0].input],
                                [model.layers[4].output])
 layer_output2 = get_layer_output2([test_images])[0]
 
-#print layer_output1
-#print layer_output2
-print np.shape(layer_output1)
-print np.shape(layer_output2)
+w = model.layers[4].get_weights()[0]
+b = model.layers[4].get_weights()[1]
 
-w = model.layers[0].get_weights()[0]
-b = model.layers[0].get_weights()[1]
-print w.shape, b.shape 
+print "layer_output1:", np.shape(layer_output1)
+print "layer_output2:", np.shape(layer_output2)
+print "w:", w.shape, "b:", b.shape
 res = 0
+c = 13
+# normal
+for k in range(0, 8):
+    for i in range(0, 5):
+        for j in range(0, 5):
+            temp = w[i, j, k, c]*layer_output1[0, i, j, k]
+            res += temp
+out = res + b[c]
+print out
+print layer_output2[0, 2, 2, c]
+# edge paddings
 for k in range(0, 8):
     for i in range(2, 5):
         for j in range(2, 5):
-            temp = w[i, j, 0, k]*layer_output1[0, i-2, j-2, k]
+            temp = w[i, j, k, c]*layer_output1[0, i-2, j-2, k]
             res += temp
-print res+b[0], layer_output2[0, 0, 0, 0]
+out = res + b[c]
+print out
+print layer_output2[0, 0, 0, c]
+# find the location
+min = 10000
+for i in range(0, 8):
+    for j in range(0, 8):
+        for k in range(0, 16):
+            temp = abs(out - layer_output2[0, i, j, k])
+            if temp < min:
+                min = temp
+                K = k
+                I = i
+                J = j
+print min, I, J, K
 
-
-"""
 # batchnormalization
 # 0-gamma, 1-beta, 2-mean, 3-variance;
 para = [1.1175389, -0.36551213, 0.01766387, 0.61547184]
