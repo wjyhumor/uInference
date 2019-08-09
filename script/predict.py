@@ -12,9 +12,9 @@ import numpy as np
 from PIL import Image
 
 
-model_name = 'save_model.json'
-weights_name = 'save_weights.h5'
-image_name = '/home/neusoft/amy/AT-201/data/beilu_0731/8/4.jpg'
+model_name = '../models/save_model.json'
+weights_name = '../models/save_model.h5'
+image_name = '../example.jpg'
 
 resize_w = 16  # 28
 resize_h = 16  # 40
