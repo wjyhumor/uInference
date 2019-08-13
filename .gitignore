@@ -17,3 +17,6 @@
 *.pyc
 __pycache__
 *.hdf5
+obj/
+massif.out.*
+*.bin

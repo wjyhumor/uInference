@@ -37,3 +37,12 @@ Total params: 4,170
 Trainable params: 4,122
 Non-trainable params: 48
 
+## Check leakage:
+```
+valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -v ./uInference.bin
+```
+Check memory:
+```
+valgrind --tool=massif ./uInference.bin
+ms_print massif.out.*
+```

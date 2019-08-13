@@ -52,8 +52,55 @@ print("pross list:" + str(predictions[0]) + "\nprossibility:" + str(
     predictions[0][result]) + "\nresult:" + str(result) + "\ntime:" + str(end-start))
 
 
-"""
+# batchnormalization
+print "-----------------"
+print "Test Batchnormalization:"
+# 0-gamma, 1-beta, 2-mean, 3-variance;
+para = [1.1175389, -0.36551213, 0.01766387, 0.61547184]
+inout = [-1.5107958e-01, -0.60569]
+print(inout[0] - para[2]) / math.sqrt(para[3] + 0.001) * para[0] + para[1]
+
+# check maxpool2d
+print "-----------------"
+print "Test Maxpool2d:"
+get_layer_output3 = K.function([model.layers[0].input],
+                               [model.layers[2].output])
+layer_output1 = get_layer_output3([test_images])[0]
+
+get_layer_output4 = K.function([model.layers[0].input],
+                               [model.layers[3].output])
+layer_output2 = get_layer_output4([test_images])[0]
+print np.shape(layer_output1)
+print np.shape(layer_output2)
+print layer_output1[0][0][0][7], layer_output1[0][0][1][7], layer_output1[0][1][0][7], layer_output1[0][1][1][7]
+print layer_output2[0][0][0][7]
+
+# dense layer
+print "-----------------"
+print "Test Dense:"
+get_layer_output5 = K.function([model.layers[0].input],
+                               [model.layers[8].output])
+layer_output1 = get_layer_output5([test_images])[0]
+
+get_layer_output6 = K.function([model.layers[0].input],
+                               [model.layers[9].output])
+layer_output2 = get_layer_output6([test_images])[0]
+out = []
+w = model.layers[9].get_weights()[0]
+b = model.layers[9].get_weights()[1]
+print w.shape, b.shape 
+for j in range(0, 10):
+    res = 0
+    for i in range(0, 64):
+        temp = w[i, j]*layer_output1[0, i]
+        res += temp
+    out.append(res+b[j])
+print layer_output2
+print out
+
 # Conv2D
+print "-----------------"
+print "Test Conv2D:"
 get_layer_output1 = K.function([model.layers[0].input],
                                [model.layers[3].output])
 layer_output1 = get_layer_output1([test_images])[0]
@@ -80,6 +127,8 @@ out = res + b[c]
 print out
 print layer_output2[0, 2, 2, c]
 # edge paddings
+res = 0
+c = 13
 for k in range(0, 8):
     for i in range(2, 5):
         for j in range(2, 5):
@@ -101,43 +150,4 @@ for i in range(0, 8):
                 J = j
 print min, I, J, K
 
-# batchnormalization
-# 0-gamma, 1-beta, 2-mean, 3-variance;
-para = [1.1175389, -0.36551213, 0.01766387, 0.61547184]
-inout = [-1.5107958e-01, -0.60569]
-print(inout[0] - para[2]) / math.sqrt(para[3] + 0.001) * para[0] + para[1]
-
-# check maxpool2d
-get_layer_output1 = K.function([model.layers[0].input],
-                               [model.layers[2].output])
-layer_output1 = get_layer_output1([test_images])[0]
-
-get_layer_output2 = K.function([model.layers[0].input],
-                               [model.layers[3].output])
-layer_output2 = get_layer_output2([test_images])[0]
-print np.shape(layer_output1)
-print np.shape(layer_output2)
-print layer_output1[0][0][0][7], layer_output1[0][0][1][7], layer_output1[0][1][0][7], layer_output1[0][1][1][7]
-print layer_output2[0][0][0][7]
-
-# dense layer
-get_layer_output1 = K.function([model.layers[0].input],
-                               [model.layers[8].output])
-layer_output1 = get_layer_output1([test_images])[0]
-
-get_layer_output2 = K.function([model.layers[0].input],
-                               [model.layers[9].output])
-layer_output2 = get_layer_output2([test_images])[0]
-out = []
-w = model.layers[9].get_weights()[0]
-b = model.layers[9].get_weights()[1]
-print w.shape, b.shape 
-for j in range(0, 10):
-    res = 0
-    for i in range(0, 64):
-        temp = w[i, j]*layer_output1[0, i]
-        res += temp
-    out.append(res+b[j])
-print out
-print layer_output2
-"""
+print test_images
