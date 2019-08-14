@@ -27,11 +27,19 @@ image make_empty_image(int w, int h, int c)
     return out;
 }
 
-void free_image(image m)
+void free_image(image *m)
 {
-    if (m.data) {
-        free(m.data);
-        m.data = NULL;
+    if (m->data) {
+        free(m->data);
+        m->data = NULL;
+    }
+}
+
+void free_in_out(in_out *m)
+{
+    if (m->data) {
+        free(m->data);
+        m->data = NULL;
     }
 }
 
@@ -145,7 +153,7 @@ image resize_image(image im, int w, int h)
         }
     }
 
-    free_image(part);
+    free_image(&part);
     return resized;
 }
 
@@ -178,7 +186,7 @@ image load_image(char *filename, int w, int h, int c)
     image out = load_image_stb(filename, c);
     if ((h && w) && (h != out.h || w != out.w)) {
         image resized = resize_image(out, w, h);
-        free_image(out);
+        free_image(&out);
         out = resized;
     }
     return out;

@@ -32,6 +32,7 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                 fout.write(struct.pack('>B', W.shape[1]))
                 fout.write(struct.pack('>B', W.shape[2]))
                 fout.write(struct.pack('>B', W.shape[3]))
+                fout.write(struct.pack('>B', l['config']['strides'][0]))
                 fout.write(struct.pack('>B', padding_dic[l['config']['padding']]))
                 #fout.write(str(W.shape[0]) + ' ' + str(W.shape[1]) +
                 #           ' ' + str(W.shape[2]) + ' ' + str(W.shape[3]) +
@@ -47,12 +48,12 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                     #fout.write(str(b[l]) + '\n')
             elif l['class_name'] == 'BatchNormalization':
                 gamma = model.layers[ind].get_weights()[0]
-                bata = model.layers[ind].get_weights()[1]
+                beta = model.layers[ind].get_weights()[1]
                 mean = model.layers[ind].get_weights()[2]
                 variance = model.layers[ind].get_weights()[3]
                 for i in range(0, len(gamma)):
                     fout.write(struct.pack('f', gamma[i]))
-                    fout.write(struct.pack('f', bata[i]))
+                    fout.write(struct.pack('f', beta[i]))
                     fout.write(struct.pack('f', mean[i]))
                     fout.write(struct.pack('f', variance[i]))
                     #fout.write(str(gamma[i]) + ',')
@@ -69,9 +70,8 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                 #fout.write(str(l['config']['pool_size'][0]) +
                 #           ' ' + str(l['config']['pool_size'][1]) + 
                 #           ' ' + str(l['config']['padding']) + '\n')
-            elif l['class_name'] == 'Flatten':
-                break
-                #print(l['config']['name'])
+            elif l['class_name'] == 'Flatten':                
+                print(l['config']['name'])
             elif l['class_name'] == 'Dense':
                 W = model.layers[ind].get_weights()[0]
                 b = model.layers[ind].get_weights()[1]

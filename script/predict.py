@@ -51,7 +51,7 @@ result = np.argmax(predictions[0])
 print("pross list:" + str(predictions[0]) + "\nprossibility:" + str(
     predictions[0][result]) + "\nresult:" + str(result) + "\ntime:" + str(end-start))
 
-
+"""
 # batchnormalization
 print "-----------------"
 print "Test Batchnormalization:"
@@ -149,5 +149,115 @@ for i in range(0, 8):
                 I = i
                 J = j
 print min, I, J, K
+"""
 
+
+#======================================
+"""
 print test_images
+"""
+# Conv2D - layer 0
+print "-----------------"
+print "Test Conv2D:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[0].output])
+layer_output = get_layer_output([test_images])[0]
+
+w = model.layers[0].get_weights()[0]
+b = model.layers[0].get_weights()[1]
+
+print "layer_output1:", np.shape(layer_output)
+print "w:", w.shape, "b:", b.shape
+"""
+for k in range(layer_output.shape[3]):
+    for j in range(layer_output.shape[2]):
+        for i in range(layer_output.shape[1]):
+            print(layer_output[0,j,i,k]),
+        print('\n'),
+"""
+print layer_output[0,0,8,0]
+
+# layer 1
+print "-----------------"
+print "Test BN:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[1].output])
+layer_output = get_layer_output([test_images])[0]
+
+w = model.layers[1].get_weights()[0]
+
+print "layer_output1:", np.shape(layer_output)
+print "w:", w.shape
+print layer_output[0,5,4,2]
+
+# layer 2
+print "-----------------"
+print "Test Activation:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[2].output])
+layer_output = get_layer_output([test_images])[0]
+        
+print layer_output.shape
+print layer_output[0,5,4,5]
+
+# layer 3
+print "-----------------"
+print "Test maxpool:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[3].output])
+layer_output = get_layer_output([test_images])[0]
+
+#print layer_output
+print layer_output[0,6,6,6]
+
+# Conv2D - layer 4
+print "-----------------"
+print "Test Conv2D:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[4].output])
+layer_output = get_layer_output([test_images])[0]
+
+w = model.layers[4].get_weights()[0]
+b = model.layers[4].get_weights()[1]
+
+print "layer_output1:", np.shape(layer_output)
+print "w:", w.shape, "b:", b.shape
+print layer_output[0,5,4,2]
+
+# layer 5
+print "-----------------"
+print "Test BN:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[5].output])
+layer_output = get_layer_output([test_images])[0]
+
+w = model.layers[5].get_weights()[0]
+
+print "layer_output1:", np.shape(layer_output)
+print "w:", w.shape
+print layer_output[0,5,4,2]
+
+# layer 6
+print "-----------------"
+print "Test Activation:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[6].output])
+layer_output = get_layer_output([test_images])[0]
+
+print layer_output[0,5,4,5]
+
+
+# layer 7
+print "-----------------"
+print "Test maxpool:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[7].output])
+layer_output = get_layer_output([test_images])[0]
+
+print layer_output[0,1,1,2]
+print layer_output.shape
+for k in range(layer_output.shape[3]):
+    for j in range(layer_output.shape[2]):
+        for i in range(layer_output.shape[1]):
+            print(layer_output[0,j,i,k]),
+        print('\n'),
