@@ -153,7 +153,7 @@ print min, I, J, K
 
 
 #======================================
-print img
+#print img
 #print test_images
 """
 # Conv2D - layer 0

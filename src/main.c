@@ -228,7 +228,7 @@ void uInference(char *model_name, char *filename)
     // load image and normalize
     image im = load_image(filename, resize_w, resize_h, 1);
     Normalize_image(&im, mean, std);
-    print_image(im);
+    //print_image(im);
 
     // load model and weights and inference
     FILE *file = fopen(model_name, "rb");
@@ -243,7 +243,7 @@ void uInference(char *model_name, char *filename)
 
     in_out *in = &im;
     in_out out = {0, 0, 0, NULL};
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < layers; i++)
     {
         int layer_type = fgetc(file);
         debug("layer type: %d", layer_type);
@@ -290,7 +290,7 @@ void uInference(char *model_name, char *filename)
                 exit(0);
         }
     }
-
+    fclose(file);
     // free 
     free_image(&out);
     free_image(&im);

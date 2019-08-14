@@ -189,13 +189,14 @@ image load_image(char *filename, int w, int h, int c)
         printf("Couldn't open file: %s\n", filename);
         exit(0);
     }
+   
     for(int k = 0; k < c; k++)
         for(int j = 0; j < h; j++)
             for(int i = 0; i < w; i++)
             {
                 out.data[k*w*h+j*w+i] = fgetc(file);
             }
-
+    fclose(file);
     return out;
 }
 
