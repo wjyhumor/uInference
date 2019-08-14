@@ -153,8 +153,8 @@ print min, I, J, K
 
 
 #======================================
-"""
-print test_images
+print img
+#print test_images
 """
 # Conv2D - layer 0
 print "-----------------"
@@ -168,13 +168,13 @@ b = model.layers[0].get_weights()[1]
 
 print "layer_output1:", np.shape(layer_output)
 print "w:", w.shape, "b:", b.shape
-"""
+
 for k in range(layer_output.shape[3]):
     for j in range(layer_output.shape[2]):
         for i in range(layer_output.shape[1]):
             print(layer_output[0,j,i,k]),
         print('\n'),
-"""
+
 print layer_output[0,0,8,0]
 
 # layer 1
@@ -261,3 +261,4 @@ for k in range(layer_output.shape[3]):
         for i in range(layer_output.shape[1]):
             print(layer_output[0,j,i,k]),
         print('\n'),
+"""

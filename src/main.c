@@ -211,7 +211,7 @@ void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
         
     }
 
-    print_image(*out);
+    //print_image(*out);
     debug("%f", out->data[6*out->w*out->h + 6*out->w + 6]);
 
     free_in_out(in);
@@ -243,7 +243,7 @@ void uInference(char *model_name, char *filename)
 
     in_out *in = &im;
     in_out out = {0, 0, 0, NULL};
-    for(int i = 0; i < layers; i++)
+    for(int i = 0; i < 4; i++)
     {
         int layer_type = fgetc(file);
         debug("layer type: %d", layer_type);
@@ -299,7 +299,7 @@ void uInference(char *model_name, char *filename)
 int main()
 {
     char *model_name = "./models/save_model_binary.dat";
-    char *filename = "./example.jpg";
+    char *filename = "./example.img";
     uInference(model_name, filename);
     return(0);
 }
