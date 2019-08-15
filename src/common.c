@@ -191,19 +191,19 @@ in_out load_image(char *filename, int w, int h, int c)
     out.w = w;
     out.h = h;
     out.c = c;
-    out.data = calloc(w*h*c, sizeof(float));
+    out.data = calloc(w * h * c, sizeof(float));
     FILE *file = fopen(filename, "rb");
     if (file == 0)
     {
         printf("Couldn't open file: %s\n", filename);
         exit(0);
     }
-   
-    for(int k = 0; k < c; k++)
-        for(int j = 0; j < h; j++)
-            for(int i = 0; i < w; i++)
+
+    for (int k = 0; k < c; k++)
+        for (int j = 0; j < h; j++)
+            for (int i = 0; i < w; i++)
             {
-                out.data[k*w*h+j*w+i] = fgetc(file);
+                out.data[k * w * h + j * w + i] = fgetc(file);
             }
     fclose(file);
     return out;
@@ -211,7 +211,8 @@ in_out load_image(char *filename, int w, int h, int c)
 
 void free_in_out(in_out *m)
 {
-    if (m->data) {
+    if (m->data)
+    {
         free(m->data);
         m->data = NULL;
     }
@@ -219,29 +220,29 @@ void free_in_out(in_out *m)
 
 void print_in_out(in_out im)
 {
-    for(int k = 0; k < im.c; k++)
+    for (int k = 0; k < im.c; k++)
     {
-        for(int j = 0; j < im.h; j++)
+        for (int j = 0; j < im.h; j++)
         {
-            for(int i = 0; i < im.w; i++)
+            for (int i = 0; i < im.w; i++)
             {
-                printf("%9f ", im.data[k*im.w*im.h + j*im.w + i]);
+                printf("%9f ", im.data[k * im.w * im.h + j * im.w + i]);
             }
             printf("\n");
         }
     }
 }
 
-void normalize_image(in_out* im, float mean, float std)
+void normalize_image(in_out *im, float mean, float std)
 {
-    for(int k = 0; k < im->c; k++)
+    for (int k = 0; k < im->c; k++)
     {
-        for(int j = 0; j < im->h; j++)
+        for (int j = 0; j < im->h; j++)
         {
-            for(int i = 0; i < im->w; i++)
+            for (int i = 0; i < im->w; i++)
             {
-                im->data[k*im->w*im->h + j*im->w + i] -= mean;
-                im->data[k*im->w*im->h + j*im->w + i] /= std;
+                im->data[k * im->w * im->h + j * im->w + i] -= mean;
+                im->data[k * im->w * im->h + j * im->w + i] /= std;
             }
         }
     }

@@ -38,7 +38,7 @@ Trainable params: 4,122
 Non-trainable params: 48
 
 # Resource used
-Memory used:15.59KB 
+Memory used:15.59KB   
 weigths: 16.7KB
 
 ## Check leakage:

@@ -45,7 +45,7 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                 fout.write(l['config']['activation'] + '\n')
             elif l['class_name'] == 'MaxPooling2D':
                 fout.write(str(l['config']['pool_size'][0]) +
-                           ' ' + str(l['config']['pool_size'][1]) + 
+                           ' ' + str(l['config']['pool_size'][1]) +
                            ' ' + str(l['config']['padding']) + '\n')
             elif l['class_name'] == 'Flatten':
                 print(l['config']['name'])
@@ -58,7 +58,8 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                         fout.write(str(W[i, j]) + ',')
                     fout.write('\n')
                     fout.write(str(b[j]) + '\n')
-    fout.close()     
+    fout.close()
+
 
 def load_save_model(load_model_name, save_model_name, save_weights_name):
     model = load_model(str(load_model_name))

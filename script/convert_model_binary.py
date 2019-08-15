@@ -5,10 +5,11 @@ from keras.models import load_model
 import json
 import struct
 
-layer_dic = {"Conv2D":1, "BatchNormalization":2, "Activation":3,"MaxPooling2D":4,
-"Flatten":5,"Dense":6}
-padding_dic = {"valid":1, "same":2}
-activation_dic = {"relu":1, "softmax":2}
+layer_dic = {"Conv2D": 1, "BatchNormalization": 2, "Activation": 3, "MaxPooling2D": 4,
+             "Flatten": 5, "Dense": 6}
+padding_dic = {"valid": 1, "same": 2}
+activation_dic = {"relu": 1, "softmax": 2}
+
 
 def load(json_name="save_model.json", weights="save_model.h5", output="save_model.dat"):
     arch = open(json_name).read()
@@ -33,8 +34,9 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                 fout.write(struct.pack('>B', W.shape[2]))
                 fout.write(struct.pack('>B', W.shape[3]))
                 fout.write(struct.pack('>B', l['config']['strides'][0]))
-                fout.write(struct.pack('>B', padding_dic[l['config']['padding']]))
-                #fout.write(str(W.shape[0]) + ' ' + str(W.shape[1]) +
+                fout.write(struct.pack(
+                    '>B', padding_dic[l['config']['padding']]))
+                # fout.write(str(W.shape[0]) + ' ' + str(W.shape[1]) +
                 #           ' ' + str(W.shape[2]) + ' ' + str(W.shape[3]) +
                 #           ' ' + str(l['config']['padding']) + '\n')
                 for l in range(W.shape[3]):
@@ -43,7 +45,7 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                             for j in range(W.shape[1]):
                                 fout.write(struct.pack('f', W[i, j, k, l]))
                                 #fout.write(str(W[i, j, k, l]) + ',')
-                        #fout.write('\n')
+                        # fout.write('\n')
                     fout.write(struct.pack('f', b[l]))
                     #fout.write(str(b[l]) + '\n')
             elif l['class_name'] == 'BatchNormalization':
@@ -61,16 +63,18 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                     #fout.write(str(mean[i]) + ',')
                     #fout.write(str(variance[i]) + '\n')
             elif l['class_name'] == 'Activation':
-                fout.write(struct.pack('>B', activation_dic[l['config']['activation']]))
+                fout.write(struct.pack(
+                    '>B', activation_dic[l['config']['activation']]))
                 #fout.write(l['config']['activation'] + '\n')
             elif l['class_name'] == 'MaxPooling2D':
                 fout.write(struct.pack('>B', l['config']['pool_size'][0]))
                 fout.write(struct.pack('>B', l['config']['pool_size'][1]))
-                fout.write(struct.pack('>B', padding_dic[l['config']['padding']]))
-                #fout.write(str(l['config']['pool_size'][0]) +
-                #           ' ' + str(l['config']['pool_size'][1]) + 
+                fout.write(struct.pack(
+                    '>B', padding_dic[l['config']['padding']]))
+                # fout.write(str(l['config']['pool_size'][0]) +
+                #           ' ' + str(l['config']['pool_size'][1]) +
                 #           ' ' + str(l['config']['padding']) + '\n')
-            elif l['class_name'] == 'Flatten':                
+            elif l['class_name'] == 'Flatten':
                 print(l['config']['name'])
             elif l['class_name'] == 'Dense':
                 W = model.layers[ind].get_weights()[0]
@@ -82,10 +86,10 @@ def load(json_name="save_model.json", weights="save_model.h5", output="save_mode
                     for i in range(W.shape[0]):
                         fout.write(struct.pack('f', W[i, j]))
                         #fout.write(str(W[i, j]) + ',')
-                    #fout.write('\n')
+                    # fout.write('\n')
                     fout.write(struct.pack('f', b[j]))
                     #fout.write(str(b[j]) + '\n')
-    fout.close()            
+    fout.close()
 
 
 def load_save_model(load_model_name, save_model_name, save_weights_name):

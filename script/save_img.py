@@ -1,4 +1,4 @@
-# save image as binary 
+# save image as binary
 import numpy as np
 from PIL import Image
 import struct
@@ -6,13 +6,13 @@ import struct
 image_name = '../example.jpg'
 output = '../example.img'
 
-resize_w = 16  
-resize_h = 16 
+resize_w = 16
+resize_h = 16
 
 img = Image.open(image_name)
 print(image_name)
 img = np.array(img.resize((resize_w, resize_h), Image.ANTIALIAS))
-print img[1,0], img[0,1]
+print img[1, 0], img[0, 1]
 print img.shape
 
 
