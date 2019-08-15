@@ -244,13 +244,13 @@ print "Test maxpool:"
 get_layer_output = K.function([model.layers[0].input],
                                [model.layers[7].output])
 layer_output = get_layer_output([test_images])[0]
-
+"""
 for k in range(layer_output.shape[3]):
     for j in range(layer_output.shape[2]):
         for i in range(layer_output.shape[1]):
             print("%9f"%layer_output[0,j,i,k]),
         print('\n'),
-
+"""
 print layer_output[0,1,1,2]
 print layer_output.shape
 
@@ -260,28 +260,28 @@ print "Test Flatten:"
 get_layer_output = K.function([model.layers[0].input],
                                [model.layers[8].output])
 layer_output = get_layer_output([test_images])[0]
-
+"""
 #print layer_output[0,1,1,2]
 print layer_output.shape
 for k in range(layer_output.shape[1]):
     for j in range(layer_output.shape[0]):
         print("%9f"%layer_output[j,k]),
 print('\n'),
-
+"""
 # layer 9
 print "-----------------"
 print "Test Dense:"
 get_layer_output = K.function([model.layers[0].input],
                                [model.layers[9].output])
 layer_output = get_layer_output([test_images])[0]
-
+"""
 #print layer_output[0,1,1,2]
 print layer_output.shape
 for k in range(layer_output.shape[1]):
     for j in range(layer_output.shape[0]):
         print("%9f"%layer_output[j,k]),
 print('\n'),
-
+"""
 # layer 10
 print "-----------------"
 print "Test Softmax:"

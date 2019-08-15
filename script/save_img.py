@@ -1,5 +1,4 @@
-
-
+# save image as binary 
 import numpy as np
 from PIL import Image
 import struct

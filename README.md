@@ -2,10 +2,10 @@
 uInference is a project which could run DNN on micro-chip like STM32 etc.
 
 # Usage
-1. Run `python2 convert_model.py` to convert the model to the .dat file.
-2. make to create, and run the bin.
-3. Run `predict.py` to run the example.jpg, compare the results.
-
+1. Run `python convert_model_binary.py` to convert the model to the .dat file.
+2. Run `python save_img.py` to convert the image to the .img file.
+3. Make and run the uInference.bin.
+4. Run `predict.py` to run the example.jpg, compare the results.
 
 # DNN model example
 _________________________________________________________________
@@ -37,8 +37,8 @@ Total params: 4,170
 Trainable params: 4,122
 Non-trainable params: 48
 
-##  
-Memory used:15.59KB
+# Resorce used
+Memory used:15.59KB 
 weigths: 16.7KB
 
 ## Check leakage:
