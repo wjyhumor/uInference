@@ -15,15 +15,11 @@ typedef struct {
     int w;
     int c;
     float *data;
-} image;
+} in_out;
 
-typedef image in_out;
-
-image load_image(char *filename, int w, int h, int c);
-void Normalize_image(image* im, float mean, float std);
-void print_image(image im);
-
-void free_image(image *m);
+in_out load_image(char *filename, int w, int h, int c);
+void normalize_image(in_out* im, float mean, float std);
+void print_in_out(in_out im);
 void free_in_out(in_out *m);
 
 #endif

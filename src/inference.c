@@ -84,8 +84,8 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
             }
         }
     }
-    //print_image(*in);
-    //print_image(*out);
+    //print_in_out(*in);
+    //print_in_out(*out);
     //debug("%f", out->data[2*out->w*out->h + 5*out->w + 4]);
 
     free(weights);
@@ -131,7 +131,7 @@ void bn_load_inference(FILE *file, in_out *in)
         }
     }
 
-    //print_image(*in);
+    //print_in_out(*in);
     //debug("%f", in->data[2*in->w*in->h + 5*in->w + 4]);
 }
 
@@ -175,10 +175,10 @@ void activation_load_inference(FILE *file, in_out *in)
         {
             in->data[i] /= sum;
         }
-        print_image(*in);
+        print_in_out(*in);
     }
 
-    //print_image(*in);
+    //print_in_out(*in);
     //debug("%f", in->data[5*in->w*in->h + 5*in->w + 4]);
 }
 
@@ -229,7 +229,7 @@ void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
         
     }
 
-    //print_image(*out);
+    //print_in_out(*out);
     //debug("%f", out->data[2*out->w*out->h + 1*out->w + 1]);
 
     free_in_out(in);
@@ -260,7 +260,7 @@ void flatten_load_inference(FILE *file, in_out *in)
     in->c = 1;
     in->data = out.data;
     out.data = NULL;
-    //print_image(*in);
+    //print_in_out(*in);
 }
 
 
@@ -306,8 +306,8 @@ void dense_load_inference(FILE *file, in_out *in, in_out *out)
         out->data[w] += bias[0];
     }
 
-    //print_image(*in);
-    //print_image(*out);
+    //print_in_out(*in);
+    //print_in_out(*out);
 
     free(weights);
     free(bias);

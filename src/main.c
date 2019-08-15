@@ -11,9 +11,9 @@ void uInference(char *model_name, char *filename)
     float std = 77.03797602437342;
 
     // load image and normalize
-    image im = load_image(filename, resize_w, resize_h, 1);
-    Normalize_image(&im, mean, std);
-    //print_image(im);
+    in_out im = load_image(filename, resize_w, resize_h, 1);
+    normalize_image(&im, mean, std);
+    //print_in_out(im);
 
     // load model and weights and inference
     FILE *file = fopen(model_name, "rb");
@@ -86,9 +86,9 @@ void uInference(char *model_name, char *filename)
     }
     fclose(file);
     // free 
-    free_image(in);
-    free_image(&out);
-    free_image(&im);
+    free_in_out(in);
+    free_in_out(&out);
+    free_in_out(&im);
 }
 
 int main()

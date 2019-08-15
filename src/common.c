@@ -137,7 +137,7 @@ image resize_image(image im, int w, int h)
         }
     }
 
-    free_image(&part);
+    free_in_out(&part);
     return resized;
 }
 
@@ -170,15 +170,24 @@ image load_image(char *filename, int w, int h, int c)
     image out = load_image_stb(filename, c);
     if ((h && w) && (h != out.h || w != out.w)) {
         image resized = resize_image(out, w, h);
-        free_image(&out);
+        free_in_out(&out);
         out = resized;
     }
     return out;
 }
-*/
-image load_image(char *filename, int w, int h, int c)
+
+void free_in_out(image *m)
 {
-    image out = {0, 0, 0, NULL};
+    if (m->data) {
+        free(m->data);
+        m->data = NULL;
+    }
+}
+
+*/
+in_out load_image(char *filename, int w, int h, int c)
+{
+    in_out out = {0, 0, 0, NULL};
     out.w = w;
     out.h = h;
     out.c = c;
@@ -200,14 +209,6 @@ image load_image(char *filename, int w, int h, int c)
     return out;
 }
 
-void free_image(image *m)
-{
-    if (m->data) {
-        free(m->data);
-        m->data = NULL;
-    }
-}
-
 void free_in_out(in_out *m)
 {
     if (m->data) {
@@ -216,7 +217,7 @@ void free_in_out(in_out *m)
     }
 }
 
-void print_image(image im)
+void print_in_out(in_out im)
 {
     for(int k = 0; k < im.c; k++)
     {
@@ -231,7 +232,7 @@ void print_image(image im)
     }
 }
 
-void Normalize_image(image* im, float mean, float std)
+void normalize_image(in_out* im, float mean, float std)
 {
     for(int k = 0; k < im->c; k++)
     {
