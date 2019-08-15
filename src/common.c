@@ -224,7 +224,7 @@ void print_image(image im)
         {
             for(int i = 0; i < im.w; i++)
             {
-                printf("%f ", im.data[k*im.w*im.h + j*im.w + i]);
+                printf("%9f ", im.data[k*im.w*im.h + j*im.w + i]);
             }
             printf("\n");
         }

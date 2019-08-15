@@ -10,8 +10,8 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
     int stride = fgetc(file);
     int type = fgetc(file); //{"valid":1, "same":2}
     int pad = 0;
-    debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, stride:%d, type:%d", 
-        conv_w, conv_h, in_c, out_c, stride, type);
+    //debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, stride:%d, type:%d", 
+    //    conv_w, conv_h, in_c, out_c, stride, type);
     
     if(type == 2) // same
     {
@@ -77,7 +77,7 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
                             if(in_x < 0 || in_x >= out->w) continue;
                             out->data[c_out*out->w*out->h + h*out->w + w]
                             += in->data[c_in*in->w*in->h + in_y*in->w + in_x] 
-                                * weights[y*conv_w + x];
+                                * weights[c_in*conv_w*conv_h + y*conv_w + x];
                         }
                     }
                 }
@@ -85,9 +85,9 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
             }
         }
     }
-
+    //print_image(*in);
     //print_image(*out);
-    debug("%f", out->data[0*out->w*out->h + 0*out->w + 8]);
+    //debug("%f", out->data[2*out->w*out->h + 5*out->w + 4]);
 
     free(weights);
     free(bias);
@@ -133,7 +133,7 @@ void bn_load_inference(FILE *file, in_out *in)
     }
 
     //print_image(*in);
-    debug("%f", in->data[2*in->w*in->h + 5*in->w + 4]);
+    //debug("%f", in->data[2*in->w*in->h + 5*in->w + 4]);
 }
 
 void activation_load_inference(FILE *file, in_out *in)
@@ -157,11 +157,30 @@ void activation_load_inference(FILE *file, in_out *in)
     }
     else if(type == 2) // softmax
     {
-
+        float sum = 0; 
+        float largest = -FLT_MAX;
+        for (int i = 0; i < in->w; ++i) 
+        {
+            if (in->data[i] > largest) 
+            {
+                largest = in->data[i];
+            }
+        }
+        for (int i = 0; i < in->w; ++i) 
+        {
+            float e = expf(in->data[i] - largest);
+            sum += e;
+            in->data[i] = e;
+        }
+        for (int i = 0; i < in->w; ++i) 
+        {
+            in->data[i] /= sum;
+        }
+        print_image(*in);
     }
 
     //print_image(*in);
-    debug("%f", in->data[5*in->w*in->h + 5*in->w + 4]);
+    //debug("%f", in->data[5*in->w*in->h + 5*in->w + 4]);
 }
 
 void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
@@ -212,10 +231,90 @@ void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
     }
 
     //print_image(*out);
-    debug("%f", out->data[6*out->w*out->h + 6*out->w + 6]);
+    //debug("%f", out->data[2*out->w*out->h + 1*out->w + 1]);
 
     free_in_out(in);
 }
+
+
+void flatten_load_inference(FILE *file, in_out *in)
+{
+    in_out out = {0, 0, 0, NULL};
+    out.w = in->w;
+    out.h = in->h;
+    out.c = in->c;
+    out.data = calloc(in->w*in->h*in->c, sizeof(float));
+    for(int c = 0; c < out.c; c++)
+    {
+        for(int h = 0; h < out.h; h++)
+        {
+            for(int w = 0; w < out.w; w++)
+            {
+               out.data[h*out.c*out.h + w*out.c + c] =  
+               in->data[c*out.w*out.h + h*out.w + w];
+            } 
+        }
+    }
+    free_in_out(in);
+    in->w = out.c*out.w*out.h;
+    in->h = 1; 
+    in->c = 1;
+    in->data = out.data;
+    out.data = NULL;
+    //print_image(*in);
+}
+
+
+void dense_load_inference(FILE *file, in_out *in, in_out *out)
+{
+    int in_w = fgetc(file);
+    int out_w = fgetc(file);
+    debug("in_w:%d, out_w:%d", in_w, out_w);
+    out->w = out_w;
+    out->h = 1;
+    out->c = 1;
+    out->data = calloc(out->w*out->h*out->c, sizeof(float));
+
+    float* weights = calloc(in->w*in->h*in->c, sizeof(float));
+    float* bias = calloc(1, sizeof(float));
+    
+    for(int w = 0; w < out->w; w++)
+    {
+        for(int i = 0; i < in->w; i++)
+        {
+            if(!fread(weights+i,sizeof(float),1,file))
+            {
+                debug("Read Dense weights error!");
+            }
+        }
+        if(!fread(bias,sizeof(float),1,file))
+        {
+            debug("Read Dense bias error!");
+        }
+        /*  
+        for(int i = 0; i < in->w*in->h; i++)
+        {
+            printf("%f ", weights[i]);
+        }
+        printf("\n");
+        printf("%f\n", *bias);
+        */
+        out->data[w] = 0;
+        for(int l = 0; l < in->w; l++)
+        {
+            out->data[w] += in->data[l] * weights[l];
+        }
+        out->data[w] += bias[0];
+    }
+
+    //print_image(*in);
+    //print_image(*out);
+
+    free(weights);
+    free(bias);
+    free_in_out(in);
+}
+
 
 void uInference(char *model_name, char *filename)
 {
@@ -281,9 +380,18 @@ void uInference(char *model_name, char *filename)
                 break;
             case 5: //Flatten
                 debug("Layer %d: Flatten", i);
+                debug("in: %d x %d x %d", in->w, in->h, in->c);
+                flatten_load_inference(file, in);
                 break;
             case 6: //Dense
                 debug("Layer %d: Dense", i);
+                debug("in: %d x %d x %d", in->w, in->h, in->c);
+                dense_load_inference(file, in, &out);
+                in->c = out.c;
+                in->w = out.w; 
+                in->h = out.h;
+                in->data = out.data;
+                out.data = NULL;
                 break;
             default: 
                 debug("layer_type: %d not recognized!", layer_type);
@@ -292,6 +400,7 @@ void uInference(char *model_name, char *filename)
     }
     fclose(file);
     // free 
+    free_image(in);
     free_image(&out);
     free_image(&im);
 }

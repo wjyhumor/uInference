@@ -155,7 +155,7 @@ print min, I, J, K
 #======================================
 #print img
 #print test_images
-"""
+
 # Conv2D - layer 0
 print "-----------------"
 print "Test Conv2D:"
@@ -169,12 +169,6 @@ b = model.layers[0].get_weights()[1]
 print "layer_output1:", np.shape(layer_output)
 print "w:", w.shape, "b:", b.shape
 
-for k in range(layer_output.shape[3]):
-    for j in range(layer_output.shape[2]):
-        for i in range(layer_output.shape[1]):
-            print(layer_output[0,j,i,k]),
-        print('\n'),
-
 print layer_output[0,0,8,0]
 
 # layer 1
@@ -185,7 +179,6 @@ get_layer_output = K.function([model.layers[0].input],
 layer_output = get_layer_output([test_images])[0]
 
 w = model.layers[1].get_weights()[0]
-
 print "layer_output1:", np.shape(layer_output)
 print "w:", w.shape
 print layer_output[0,5,4,2]
@@ -196,7 +189,6 @@ print "Test Activation:"
 get_layer_output = K.function([model.layers[0].input],
                                [model.layers[2].output])
 layer_output = get_layer_output([test_images])[0]
-        
 print layer_output.shape
 print layer_output[0,5,4,5]
 
@@ -246,7 +238,6 @@ layer_output = get_layer_output([test_images])[0]
 
 print layer_output[0,5,4,5]
 
-
 # layer 7
 print "-----------------"
 print "Test maxpool:"
@@ -254,11 +245,53 @@ get_layer_output = K.function([model.layers[0].input],
                                [model.layers[7].output])
 layer_output = get_layer_output([test_images])[0]
 
-print layer_output[0,1,1,2]
-print layer_output.shape
 for k in range(layer_output.shape[3]):
     for j in range(layer_output.shape[2]):
         for i in range(layer_output.shape[1]):
-            print(layer_output[0,j,i,k]),
+            print("%9f"%layer_output[0,j,i,k]),
         print('\n'),
-"""
+
+print layer_output[0,1,1,2]
+print layer_output.shape
+
+# layer 8
+print "-----------------"
+print "Test Flatten:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[8].output])
+layer_output = get_layer_output([test_images])[0]
+
+#print layer_output[0,1,1,2]
+print layer_output.shape
+for k in range(layer_output.shape[1]):
+    for j in range(layer_output.shape[0]):
+        print("%9f"%layer_output[j,k]),
+print('\n'),
+
+# layer 9
+print "-----------------"
+print "Test Dense:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[9].output])
+layer_output = get_layer_output([test_images])[0]
+
+#print layer_output[0,1,1,2]
+print layer_output.shape
+for k in range(layer_output.shape[1]):
+    for j in range(layer_output.shape[0]):
+        print("%9f"%layer_output[j,k]),
+print('\n'),
+
+# layer 10
+print "-----------------"
+print "Test Softmax:"
+get_layer_output = K.function([model.layers[0].input],
+                               [model.layers[10].output])
+layer_output = get_layer_output([test_images])[0]
+
+#print layer_output[0,1,1,2]
+print layer_output.shape
+for k in range(layer_output.shape[1]):
+    for j in range(layer_output.shape[0]):
+        print("%9f"%layer_output[j,k]),
+print('\n'),
