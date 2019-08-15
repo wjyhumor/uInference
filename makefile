@@ -7,7 +7,7 @@ CC=gcc
 LDFLAGS=-lm
 CFLAGS=-Wall -Wfatal-errors -Ofast
 
-OBJ=common.o main.o 
+OBJ=common.o inference.o main.o 
 
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
 DEPS = $(wildcard src/*.h) 

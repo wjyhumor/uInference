@@ -6,9 +6,9 @@
 #include <assert.h>
 #include <math.h>
 #include <float.h>
+#include <time.h>
 
 #define debug(a, args...) printf("%s(%s:%d) " a "\n", __func__, __FILE__, __LINE__, ##args)
-
 
 typedef struct {
     int h;
