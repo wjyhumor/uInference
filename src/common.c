@@ -176,14 +176,6 @@ image load_image(char *filename, int w, int h, int c)
     return out;
 }
 
-void free_in_out(image *m)
-{
-    if (m->data) {
-        free(m->data);
-        m->data = NULL;
-    }
-}
-
 */
 in_out load_image(char *filename, int w, int h, int c)
 {
