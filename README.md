@@ -12,36 +12,24 @@ uInference is a inference framework which could run Classification and Object De
 Run `python train.py`.
 
 ## DNN model example for classification
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #   
-=================================================================
-conv2d_1 (Conv2D)            (None, 16, 16, 8)         208       
-_________________________________________________________________
-batch_normalization_1 (Batch (None, 16, 16, 8)         32        
-_________________________________________________________________
-activation_1 (Activation)    (None, 16, 16, 8)         0         
-_________________________________________________________________
-max_pooling2d_1 (MaxPooling2 (None, 8, 8, 8)           0         
-_________________________________________________________________
-conv2d_2 (Conv2D)            (None, 8, 8, 16)          3216      
-_________________________________________________________________
-batch_normalization_2 (Batch (None, 8, 8, 16)          64        
-_________________________________________________________________
-activation_2 (Activation)    (None, 8, 8, 16)          0         
-_________________________________________________________________
-max_pooling2d_2 (MaxPooling2 (None, 2, 2, 16)          0         
-_________________________________________________________________
-flatten_1 (Flatten)          (None, 64)                0         
-_________________________________________________________________
-dense_1 (Dense)              (None, 10)                650       
-_________________________________________________________________
-activation_3 (Activation)    (None, 10)                0         
-=================================================================
-Total params: 4,170
-Trainable params: 4,122
-Non-trainable params: 48
+Layer (type)                 |Output Shape      |Param #   
+-----------------------------|------------------|---------------
+conv2d_1 (Conv2D)            |(None, 16, 16, 8) |208       
+batch_normalization_1        |(None, 16, 16, 8) |32        
+activation_1 (Activation)    |(None, 16, 16, 8) |0         
+max_pooling2d_1 (MaxPooling2 |(None, 8, 8, 8)   |0         
+conv2d_2 (Conv2D)            |(None, 8, 8, 16)  |3216      
+batch_normalization_2 (Batch |(None, 8, 8, 16)  |64        
+activation_2 (Activation)    |(None, 8, 8, 16)  |0         
+max_pooling2d_2 (MaxPooling2 |(None, 2, 2, 16)  |0         
+flatten_1 (Flatten)          |(None, 64)        |0         
+dense_1 (Dense)              |(None, 10)        |650       
+activation_3 (Activation)    |(None, 10)        |0         
 
-## Resource used
+Total params: 4,170  
+Trainable params: 4,122  
+Non-trainable params: 48  
+
 Memory used:15.59KB   
 weigths (save_model_binary): 16.7KB
 
@@ -60,12 +48,12 @@ Copy the generated anchors printed on the terminal to the ```anchors``` setting 
 `python predict.py -c config.json -w tiny_yolo_ocr_2.h5 -i demo.jpg`
 
 ## Models
-tiny_yolo_ocr_layer3ch.h5: TinyYoloFeature, channel=3; Model size=189836484
-tiny_yolo_ocr_layer1ch.h5: TinyYoloFeature, channel=1; Model size=189833856
-tiny_yolo_ocr_1.h5: TinyYoloFeature_1, input_size=320; Model size=12138400
-tiny_yolo_ocr_2.h5: TinyYoloFeature_2, input_size=320; Model size=3163852
-tiny_yolo_ocr_3.h5: TinyYoloFeature_3, input_size=320; Model size=1383484
-tiny_yolo_ocr_4.h5: TinyYoloFeature_4, input_size=320; Model size=891676
+tiny_yolo_ocr_layer3ch.h5: TinyYoloFeature, channel=3; Model size=189836484  
+tiny_yolo_ocr_layer1ch.h5: TinyYoloFeature, channel=1; Model size=189833856  
+tiny_yolo_ocr_1.h5: TinyYoloFeature_1, input_size=320; Model size=12138400  
+tiny_yolo_ocr_2.h5: TinyYoloFeature_2, input_size=320; Model size=3163852  
+tiny_yolo_ocr_3.h5: TinyYoloFeature_3, input_size=320; Model size=1383484  
+tiny_yolo_ocr_4.h5: TinyYoloFeature_4, input_size=320; Model size=891676  
 
 
 # Check leakage:
