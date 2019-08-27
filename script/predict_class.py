@@ -11,7 +11,6 @@ import math
 import numpy as np
 from PIL import Image
 
-
 model_name = '../models_class/save_model.json'
 weights_name = '../models_class/save_model.h5'
 image_name = '../ex_class.jpg'

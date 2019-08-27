@@ -38,14 +38,14 @@ weigths (save_model_binary): 16.7KB
 ## Training (in `tran_od/`)
 1. Generate anchors for your dataset (optional)  
 `python gen_anchors.py -c config.json`  
-Copy the generated anchors printed on the terminal to the ```anchors``` setting in ```config.json```.
+Copy the generated anchors printed on the terminal to the `anchors` setting in `config.json`.
 
 2. Start the training process  
 `python train.py -c config.json`
 
 3. Perform detection using trained weights on an image by running
 `python predict.py -c config.json -w /path/to/weights.h5 -i /path/to/image/or/video`  
-`python predict.py -c config.json -w tiny_yolo_ocr_2.h5 -i demo.jpg`
+`python predict.py -c config.json -w ../models_od/tiny_yolo_ocr_4.h5 -i ../ex_od.jpg`
 
 ## Models
 tiny_yolo_ocr_layer3ch.h5: TinyYoloFeature, channel=3; Model size=189836484  

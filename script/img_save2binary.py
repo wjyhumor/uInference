@@ -3,11 +3,11 @@ import numpy as np
 from PIL import Image
 import struct
 
-image_name = '../ex_class.jpg'
-output = '../ex_class.img'
+image_name = '../ex_od.jpg'
+output = '../ex_od.img'
 
-resize_w = 16
-resize_h = 16
+resize_w = 320 #16
+resize_h = 320 #16
 
 img = Image.open(image_name)
 print(image_name)
