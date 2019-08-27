@@ -16,7 +16,11 @@
 **/*.lst
 *.pyc
 __pycache__
+
 obj/
+data/
+models*/
 massif.out.*
 *.bin
 uInference.bin.dSYM/ 
+*.img

@@ -1,4 +1,4 @@
-
+# convert Keras model to binary file
 from keras.models import model_from_json
 from keras.models import Sequential
 from keras.models import load_model
@@ -104,11 +104,11 @@ def load_save_model(load_model_name, save_model_name, save_weights_name):
 if __name__ == '__main__':
     model_type = 0  # config and weights in one file
     if model_type == 1:
-        load_model_name = '../models/weights-model1.hdf5'
+        load_model_name = '../models_class/save_model.hdf5'
 
-    save_model_name = '../models/save_model.json'
-    save_weights_name = '../models/save_model.h5'
-    output = '../models/save_model_binary.dat'
+    save_model_name = '../models_class/save_model.json'
+    save_weights_name = '../models_class/save_model.h5'
+    output = '../models_class/save_model_binary.dat'
 
     if model_type == 1:
         load_save_model(load_model_name, save_model_name, save_weights_name)

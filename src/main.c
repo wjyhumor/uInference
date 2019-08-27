@@ -4,8 +4,8 @@
 
 int main()
 {
-    char *model_name = "./models/save_model_binary.dat";
-    char *filename = "./example.img";
+    char *model_name = "./models_class/save_model_binary.dat";
+    char *filename = "./ex_class.img";
     clock_t before = clock();
     uInference(model_name, filename);
     clock_t difference = clock() - before;

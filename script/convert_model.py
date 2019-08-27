@@ -1,9 +1,8 @@
-
+# convert Keras model to dat file
 from keras.models import model_from_json
 from keras.models import Sequential
 from keras.models import load_model
 import json
-
 
 def load(json_name="save_model.json", weights="save_model.h5", output="save_model.dat"):
     arch = open(json_name).read()
