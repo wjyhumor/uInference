@@ -72,11 +72,11 @@ def load_save_model(load_model_name, save_model_name, save_weights_name):
 if __name__ == '__main__':
     model_type = 0  # config and weights in one file
     if model_type == 1:
-        load_model_name = '../models/weights-model1.hdf5'
+        load_model_name = '../models_od/tiny_yolo_ocr_6.hdf5'
 
-    save_model_name = '../models/save_model.json'
-    save_weights_name = '../models/save_model.h5'
-    output = '../models/save_model.dat'
+    save_model_name = '../models_od/tiny_yolo_ocr_6.json'
+    save_weights_name = '../models_od/tiny_yolo_ocr_6.h5'
+    output = '../models_od/tiny_yolo_ocr_6.dat'
 
     if model_type == 1:
         load_save_model(load_model_name, save_model_name, save_weights_name)

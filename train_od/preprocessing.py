@@ -172,8 +172,7 @@ class BatchGenerator(Sequence):
 
     def load_image(self, i):
         image = cv2.imread(self.images[i]['filename'])
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        return gray_image
+        return image
 
     def __getitem__(self, idx):
         l_bound = idx*self.config['BATCH_SIZE']
@@ -313,7 +312,7 @@ class BatchGenerator(Sequence):
 
         # resize the image to standard size
         image = cv2.resize(
-            image, (self.config['IMAGE_H'], self.config['IMAGE_W']))
+            image, (self.config['IMAGE_W'], self.config['IMAGE_H']))
         image = image[:, :, ::-1]
 
         # fix object's position and size
@@ -340,5 +339,5 @@ class BatchGenerator(Sequence):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         #image = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140])
         image = np.reshape(image, (image.shape[0], image.shape[1], 1))
-        #print(image.shape)
+
         return image, all_objs

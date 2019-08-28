@@ -45,7 +45,7 @@ Copy the generated anchors printed on the terminal to the `anchors` setting in `
 
 3. Perform detection using trained weights on an image by running
 `python predict.py -c config.json -w /path/to/weights.h5 -i /path/to/image/or/video`  
-`python predict.py -c config.json -w ../models_od/tiny_yolo_ocr_4.h5 -i ../ex_od.jpg`
+`python predict.py -c config.json -w ../models_od/tiny_yolo_ocr_5.h5 -i ../ex_od.jpg`
 
 ## Models
 tiny_yolo_ocr_layer3ch.h5: TinyYoloFeature, channel=3; Model size=189836484  
@@ -54,6 +54,8 @@ tiny_yolo_ocr_1.h5: TinyYoloFeature_1, input_size=320; Model size=12138400
 tiny_yolo_ocr_2.h5: TinyYoloFeature_2, input_size=320; Model size=3163852  
 tiny_yolo_ocr_3.h5: TinyYoloFeature_3, input_size=320; Model size=1383484  
 tiny_yolo_ocr_4.h5: TinyYoloFeature_4, input_size=320; Model size=891676  
+tiny_yolo_ocr_5.h5: TinyYoloFeature_4, input_width=320, input_height=105; Model size=891676  
+tiny_yolo_ocr_6.h5: TinyYoloFeature_5, input_width=320, input_height=105; Model size=635004  
 
 
 # Check leakage:

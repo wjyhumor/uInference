@@ -12,7 +12,8 @@ from keras.optimizers import SGD, Adam, RMSprop
 from preprocessing import BatchGenerator
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from backend import TinyYoloFeature, FullYoloFeature, MobileNetFeature, SqueezeNetFeature, Inception3Feature, VGG16Feature, ResNet50Feature
-from backend import MyYoloFeature, TinyYoloFeature_1, TinyYoloFeature_2, TinyYoloFeature_3, TinyYoloFeature_4
+from backend import MyYoloFeature, TinyYoloFeature_1, TinyYoloFeature_2, TinyYoloFeature_3, TinyYoloFeature_4, TinyYoloFeature_5
+
 
 class YOLO(object):
     def __init__(self, backend,
@@ -28,7 +29,7 @@ class YOLO(object):
 
         self.labels = list(labels)
         self.nb_class = len(self.labels)
-        self.nb_box = len(anchors)//2 # each anchor has 2 (w,h) number.
+        self.nb_box = len(anchors)//2  # each anchor has 2 (w,h) number.
         self.class_wt = np.ones(self.nb_class, dtype='float32')
         self.anchors = anchors
         self.max_box_per_image = max_box_per_image
@@ -38,7 +39,8 @@ class YOLO(object):
         ##########################
 
         # make the feature extractor layers
-        input_image = Input(shape=(self.input_width, self.input_height, self.input_channel))
+        input_image = Input(
+            shape=(self.input_height, self.input_width, self.input_channel))
         self.true_boxes = Input(shape=(1, 1, 1, max_box_per_image, 4))
 
         if backend == 'Inception3':
@@ -67,6 +69,9 @@ class YOLO(object):
                 self.input_width, self.input_height, self.input_channel)
         elif backend == 'Tiny Yolo_4':
             self.feature_extractor = TinyYoloFeature_4(
+                self.input_width, self.input_height, self.input_channel)
+        elif backend == 'Tiny Yolo_5':
+            self.feature_extractor = TinyYoloFeature_5(
                 self.input_width, self.input_height, self.input_channel)
         elif backend == 'VGG16':
             self.feature_extractor = VGG16Feature(
@@ -108,19 +113,33 @@ class YOLO(object):
 
         layer.set_weights([new_kernel, new_bias])
 
+        # save model config
+        save_model_name = "ocr.json"
+        model_json = self.model.to_json()
+        with open(save_model_name, "w") as json_file:
+            json_file.write(model_json)
+            
         # print a summary of the whole model
         self.model.summary()
 
     def custom_loss(self, y_true, y_pred):
-        mask_shape = tf.shape(y_true)[:4]
-
-        cell_x = tf.to_float(tf.reshape(tf.tile(tf.range(self.grid_w), [self.grid_h]), 
+        # Reshape to batch, height, width, num_anchors, box_params.
+        """
+        cell_x = tf.to_float(tf.reshape(tf.tile(tf.range(self.grid_w), [self.grid_h]),
                                         (1, self.grid_h, self.grid_w, 1, 1)))
         cell_y = tf.transpose(cell_x, (0, 2, 1, 3, 4))
-
         cell_grid = tf.tile(
             tf.concat([cell_x, cell_y], -1), [self.batch_size, 1, 1, self.nb_box, 1])
-        
+        """
+        grid_y = tf.tile(tf.reshape(tf.range(0, self.grid_h), [-1, 1, 1, 1]),
+            [1, self.grid_w, 1, 1])
+        grid_x = tf.tile(tf.reshape(tf.range(0, self.grid_w), [1, -1, 1, 1]),
+            [self.grid_h, 1, 1, 1])
+        cell_grid = tf.concat([grid_x, grid_y], -1)
+        cell_grid = tf.cast(cell_grid, dtype=tf.float32)
+
+
+        mask_shape = tf.shape(y_true)[:4]
         coord_mask = tf.zeros(mask_shape)
         conf_mask = tf.zeros(mask_shape)
         class_mask = tf.zeros(mask_shape)
@@ -129,13 +148,14 @@ class YOLO(object):
         total_recall = tf.Variable(0.)
 
         """
-        Adjust prediction
+        Adjust preditions to each spatial grid point and anchor size.
         """
         # adjust x and y
         pred_box_xy = tf.sigmoid(y_pred[..., :2]) + cell_grid
 
         # adjust w and h
-        pred_box_wh = tf.exp(y_pred[..., 2:4]) * np.reshape(self.anchors, [1, 1, 1, self.nb_box, 2])
+        pred_box_wh = tf.exp(
+            y_pred[..., 2:4]) * np.reshape(self.anchors, [1, 1, 1, self.nb_box, 2])
 
         # adjust confidence
         pred_box_conf = tf.sigmoid(y_pred[..., 4])
@@ -234,12 +254,12 @@ class YOLO(object):
             tf.cond(tf.less(seen, self.warmup_batches+1),
                     lambda: [true_box_xy + (0.5 + cell_grid) * no_boxes_mask,
                              true_box_wh + tf.ones_like(true_box_wh) *
-                                np.reshape(self.anchors, [1, 1, 1, self.nb_box, 2]) * 
-                                no_boxes_mask,
+                             np.reshape(self.anchors, [1, 1, 1, self.nb_box, 2]) *
+                             no_boxes_mask,
                              tf.ones_like(coord_mask)],
                     lambda: [true_box_xy,
                              true_box_wh,
-                             coord_mask])        
+                             coord_mask])
 
         """
         Finalize the loss
@@ -249,40 +269,41 @@ class YOLO(object):
         nb_class_box = tf.reduce_sum(tf.to_float(class_mask > 0.0))
 
         loss_xy = tf.reduce_sum(tf.square(true_box_xy-pred_box_xy) * coord_mask) \
-                    / (nb_coord_box + 1e-6) / 2.
+            / (nb_coord_box + 1e-6) / 2.
         loss_wh = tf.reduce_sum(tf.square(true_box_wh-pred_box_wh) * coord_mask) \
-                    / (nb_coord_box + 1e-6) / 2.
+            / (nb_coord_box + 1e-6) / 2.
         loss_conf = tf.reduce_sum(tf.square(true_box_conf-pred_box_conf) * conf_mask) \
-                    / (nb_conf_box + 1e-6) / 2.
-        loss_class = tf.nn.sparse_softmax_cross_entropy_with_logits( \
-                    labels=true_box_class, logits=pred_box_class)
-        loss_class = tf.reduce_sum(loss_class * class_mask) / (nb_class_box + 1e-6)
+            / (nb_conf_box + 1e-6) / 2.
+        loss_class = tf.nn.sparse_softmax_cross_entropy_with_logits(
+            labels=true_box_class, logits=pred_box_class)
+        loss_class = tf.reduce_sum(
+            loss_class * class_mask) / (nb_class_box + 1e-6)
 
-        loss = tf.cond(tf.less(seen, self.warmup_batches+1), \
-                       lambda: loss_xy + loss_wh + loss_conf + loss_class + 10, \
+        loss = tf.cond(tf.less(seen, self.warmup_batches+1),
+                       lambda: loss_xy + loss_wh + loss_conf + loss_class + 10,
                        lambda: loss_xy + loss_wh + loss_conf + loss_class)
 
         if self.debug:
             nb_true_box = tf.reduce_sum(y_true[..., 4])
-            nb_pred_box = tf.reduce_sum(tf.to_float( \
+            nb_pred_box = tf.reduce_sum(tf.to_float(
                 true_box_conf > 0.5) * tf.to_float(pred_box_conf > 0.3))
 
             current_recall = nb_pred_box/(nb_true_box + 1e-6)
             total_recall = tf.assign_add(total_recall, current_recall)
 
-            loss = tf.Print(loss, [loss_xy], \
+            loss = tf.Print(loss, [loss_xy],
                             message='Loss XY \t', summarize=1000)
-            loss = tf.Print(loss, [loss_wh], \
+            loss = tf.Print(loss, [loss_wh],
                             message='Loss WH \t', summarize=1000)
-            loss = tf.Print(loss, [loss_conf], \
+            loss = tf.Print(loss, [loss_conf],
                             message='Loss Conf \t', summarize=1000)
-            loss = tf.Print(loss, [loss_class], \
+            loss = tf.Print(loss, [loss_class],
                             message='Loss Class \t', summarize=1000)
-            loss = tf.Print(  \
+            loss = tf.Print(
                 loss, [loss], message='Total Loss \t', summarize=1000)
-            loss = tf.Print(loss, [current_recall], \
+            loss = tf.Print(loss, [current_recall],
                             message='Current Recall \t', summarize=1000)
-            loss = tf.Print(loss, [total_recall/seen], \
+            loss = tf.Print(loss, [total_recall/seen],
                             message='Average Recall \t', summarize=1000)
 
         return loss
@@ -391,6 +412,7 @@ class YOLO(object):
         ############################################
         # Compute mAP on the validation set
         ############################################
+        """
         average_precisions = self.evaluate(valid_generator)
 
         # print evaluation
@@ -398,6 +420,7 @@ class YOLO(object):
             print(self.labels[label], '{:.4f}'.format(average_precision))
         print('mAP: {:.4f}'.format(
             sum(average_precisions.values()) / len(average_precisions)))
+        """
 
     def evaluate(self,
                  generator,
@@ -426,7 +449,7 @@ class YOLO(object):
 
         for i in range(generator.size()):
             raw_image = generator.load_image(i)
-            raw_height, raw_width, raw_channels = raw_image.shape
+            raw_height, raw_width = raw_image.shape
 
             # make the boxes and the labels
             pred_boxes = self.predict(raw_image)
