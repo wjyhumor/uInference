@@ -25,7 +25,8 @@
         "coord_scale":          1.0,
         "class_scale":          1.0,
 
-        "saved_weights_name":   "tiny_yolo_ocr_6.h5",
+        "saved_config_name":    "../models_od/tiny_yolo_ocr_6.json",
+        "saved_weights_name":   "../models_od/tiny_yolo_ocr_6.h5",
         "debug":                true
     },
 

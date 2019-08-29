@@ -71,7 +71,8 @@ def _main_(args):
                 input_channel       = config['model']['input_channel'], 
                 labels              = config['model']['labels'], 
                 max_box_per_image   = config['model']['max_box_per_image'],
-                anchors             = config['model']['anchors'])
+                anchors             = config['model']['anchors'],
+                saved_config_name = config['train']['saved_config_name'])
 
     ###############################
     #   Load the pretrained weights (if any) 

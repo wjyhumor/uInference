@@ -4,7 +4,7 @@
 
 int main()
 {
-    char *model_name = "./models_class/save_model_binary.dat";
+    char *model_name = "./models_class/save_model.dat";
     char *filename = "./ex_class.img";
     clock_t before = clock();
     uInference(model_name, filename);

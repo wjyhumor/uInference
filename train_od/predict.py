@@ -23,19 +23,14 @@ argparser.add_argument(
     help='path to configuration file')
 
 argparser.add_argument(
-    '-w',
-    '--weights',
-    help='path to pretrained weights')
-
-argparser.add_argument(
     '-i',
     '--input',
     help='path to an image or an video (mp4 format)')
 
 def _main_(args):
     config_path  = args.conf
-    weights_path = args.weights
     image_path   = args.input
+
     with open(config_path) as config_buffer:    
         config = json.load(config_buffer)
 
@@ -49,13 +44,14 @@ def _main_(args):
                 input_channel       = config['model']['input_channel'], 
                 labels              = config['model']['labels'], 
                 max_box_per_image   = config['model']['max_box_per_image'],
-                anchors             = config['model']['anchors'])
+                anchors             = config['model']['anchors'],
+                saved_config_name   = config['train']['saved_config_name'])
 
     ###############################
     #   Load trained weights
     ###############################    
-
-    yolo.load_weights(weights_path)
+    print config['train']['saved_weights_name']
+    yolo.load_weights(config['train']['saved_weights_name'])
 
     ###############################
     #   Predict bounding boxes 

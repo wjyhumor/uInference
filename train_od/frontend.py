@@ -6,14 +6,18 @@ import numpy as np
 import os
 import cv2
 from utils import decode_netout, compute_overlap, compute_ap
+import keras
 from keras.applications.mobilenet import MobileNet
 from keras.layers.merge import concatenate
 from keras.optimizers import SGD, Adam, RMSprop
 from preprocessing import BatchGenerator
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
+from keras.models import Sequential
+from keras.layers import *
 from backend import TinyYoloFeature, FullYoloFeature, MobileNetFeature, SqueezeNetFeature, Inception3Feature, VGG16Feature, ResNet50Feature
 from backend import MyYoloFeature, TinyYoloFeature_1, TinyYoloFeature_2, TinyYoloFeature_3, TinyYoloFeature_4, TinyYoloFeature_5
 
+#import models
 
 class YOLO(object):
     def __init__(self, backend,
@@ -22,7 +26,8 @@ class YOLO(object):
                  input_channel,
                  labels,
                  max_box_per_image,
-                 anchors):
+                 anchors,
+                 saved_config_name):
         self.input_width = input_width
         self.input_height = input_height
         self.input_channel = input_channel
@@ -37,7 +42,8 @@ class YOLO(object):
         ##########################
         # Make the model
         ##########################
-
+        #models.model_1(self.input_height, self.input_width, self.input_channel, \
+        #                self.max_box_per_image, self.nb_box, self.nb_class)
         # make the feature extractor layers
         input_image = Input(
             shape=(self.input_height, self.input_width, self.input_channel))
@@ -86,10 +92,11 @@ class YOLO(object):
             raise Exception(
                 'Architecture not supported! Only support Full Yolo, Tiny Yolo, MobileNet, SqueezeNet, VGG16, ResNet50, and Inception3 at the moment!')
 
-        print(self.feature_extractor.get_output_shape())
+        # print(self.feature_extractor.get_output_shape())
         self.grid_h, self.grid_w = self.feature_extractor.get_output_shape()
+    
         features = self.feature_extractor.extract(input_image)
-
+        
         # make the object detection layer
         output = Conv2D(self.nb_box * (4 + 1 + self.nb_class),
                         (1, 1), strides=(1, 1),
@@ -114,11 +121,10 @@ class YOLO(object):
         layer.set_weights([new_kernel, new_bias])
 
         # save model config
-        save_model_name = "ocr.json"
         model_json = self.model.to_json()
-        with open(save_model_name, "w") as json_file:
+        with open(str(saved_config_name), "w") as json_file:
             json_file.write(model_json)
-            
+
         # print a summary of the whole model
         self.model.summary()
 
@@ -132,12 +138,11 @@ class YOLO(object):
             tf.concat([cell_x, cell_y], -1), [self.batch_size, 1, 1, self.nb_box, 1])
         """
         grid_y = tf.tile(tf.reshape(tf.range(0, self.grid_h), [-1, 1, 1, 1]),
-            [1, self.grid_w, 1, 1])
+                         [1, self.grid_w, 1, 1])
         grid_x = tf.tile(tf.reshape(tf.range(0, self.grid_w), [1, -1, 1, 1]),
-            [self.grid_h, 1, 1, 1])
+                         [self.grid_h, 1, 1, 1])
         cell_grid = tf.concat([grid_x, grid_y], -1)
         cell_grid = tf.cast(cell_grid, dtype=tf.float32)
-
 
         mask_shape = tf.shape(y_true)[:4]
         coord_mask = tf.zeros(mask_shape)
