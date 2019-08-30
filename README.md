@@ -5,7 +5,7 @@ uInference is a inference framework which could run Classification and Object De
 1. In folder `script/`, run `python img_save2binary.py` to convert the image to the .img file.
 2. In folder `script/`, run `python convert_model.py` to convert the model to the .dat file.
 3. In root folder, make and run the uInference.bin.
-4. In folder `script/`, run `predict_class.py` to run the example.jpg, compare the results.
+4. In folder `train_class/`, run `predict_class.py` to run the example.jpg, compare the results, you will see that the outputs are exactly the same.
 
 # Classification
 ## Training (in `tran_class/`)
@@ -58,8 +58,8 @@ tiny_yolo_ocr_5.h5: TinyYoloFeature_4, input_width=320, input_height=105; Model 
 tiny_yolo_ocr_6.h5: TinyYoloFeature_5, input_width=320, input_height=105; Model size=635004  
 
 ## DNN model example for object detection
-Layer (type)                 |Output Shape      |Param #   
------------------------------|------------------|---------------
+Layer (type)                 |Output Shape              |Param #   
+-----------------------------|--------------------------|----------
 input_3 (InputLayer)         |(None, 105, 320, 1)       |0         
 conv_1 (Conv2D)              |(None, 105, 320, 4)       |36        
 norm_1 (BatchNormalization)  |(None, 105, 320, 4)       |16        
@@ -93,8 +93,8 @@ Total params: 41,812
 Trainable params: 41,428  
 Non-trainable params: 384  
 
-Layer (type)                 |Output Shape      |Param #        |Connected to
------------------------------|------------------|---------------|-------------
+Layer (type)                 |Output Shape         |Param #     |Connected to
+-----------------------------|---------------------|------------|-------------
 input_1 (InputLayer)         |(None, 105, 320, 1)  |0           |        
 model_1 (Model)              |(None, 3, 10, 64)    |41812       |input_1[0][0] 
 DetectionLayer (Conv2D)      |(None, 3, 10, 75)    |4875        |model_1[1][0]    

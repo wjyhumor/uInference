@@ -126,6 +126,7 @@ class YOLO(object):
             json_file.write(model_json)
 
         # print a summary of the whole model
+        self.feature_extractor.feature_extractor.summary()
         self.model.summary()
 
     def custom_loss(self, y_true, y_pred):

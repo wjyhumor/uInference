@@ -7,9 +7,10 @@ import struct
 
 layer_dic = {"Conv2D": 1, "BatchNormalization": 2, "Activation": 3, "MaxPooling2D": 4,
              "Flatten": 5, "Dense": 6, "InputLayer": 7, "Model": 8, "Reshape": 9,
-             "Lambda": 10}
+             "Lambda": 10, "LeakyReLU": 11}
 padding_dic = {"valid": 1, "same": 2}
 activation_dic = {"relu": 1, "softmax": 2}
+
 # load single-file model and save model as separate fils: json & weights
 def load_save_model(load_model_name, save_model_name, save_weights_name):
     model = load_model(str(load_model_name))
@@ -292,7 +293,11 @@ def save_objectdetection_binary(json_name="save_model.json", weights="save_model
                 fout.write(struct.pack('>B', l['config']['strides'][0]))
                 fout.write(struct.pack(
                     '>B', padding_dic[l['config']['padding']]))
-                fout.write(struct.pack('>B', l['config']['use_bias']))
+                if l['config']['use_bias']:
+                    fout.write(struct.pack('>B', 1))
+                else:
+                    fout.write(struct.pack('>B', 0))
+                
                 # fout.write(str(W.shape[0]) + ' ' + str(W.shape[1]) +
                 #           ' ' + str(W.shape[2]) + ' ' + str(W.shape[3]) +
                 #           ' ' + str(l['config']['padding']) + '\n')
@@ -353,7 +358,8 @@ def save_objectdetection_binary(json_name="save_model.json", weights="save_model
                 for i in range(len(l['config']['layers'])):
                     name = l['config']['layers'][i]["class_name"]
                     print(name)
-                    fout.write(name + '\n')
+                    fout.write(struct.pack('>B', layer_dic[name]))
+                    #fout.write(name + '\n')
                     if name == 'Conv2D':
                         W = model.layers[ind].get_weights()[sublayer_ind]
                         sublayer_ind += 1
@@ -367,6 +373,10 @@ def save_objectdetection_binary(json_name="save_model.json", weights="save_model
                         fout.write(struct.pack('>B', l['config']['layers'][i]['config']['strides'][0]))
                         fout.write(struct.pack(
                             '>B', padding_dic[l['config']['layers'][i]['config']['padding']]))
+                        if l['config']['layers'][i]['config']['use_bias']:
+                            fout.write(struct.pack('>B', 1))
+                        else:
+                            fout.write(struct.pack('>B', 0))
                         for o in range(W.shape[3]):
                             for k in range(W.shape[2]):
                                 for m in range(W.shape[0]):

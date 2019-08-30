@@ -32,6 +32,12 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
     {
         debug("Read weights error!");
     }
+    int use_bias = 0; //fgetc(file); //{"valid":1, "same":2}
+    if (!fread(&use_bias, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    debug("use_bias: %d", use_bias);
     int pad = 0;
     //debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, stride:%d, type:%d",
     //    conv_w, conv_h, in_c, out_c, stride, type);
@@ -43,7 +49,7 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
         out->c = out_c;
         out->data = calloc(out->w * out->h * out->c, sizeof(float));
         pad = conv_w / 2;
-        debug("pad:%d", pad);
+        //debug("pad:%d", pad);
     }
     else if (type == 1) // valid
     {
@@ -59,7 +65,11 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
     }
 
     float *weights = calloc(conv_w * conv_h * in_c, sizeof(float));
-    float *bias = calloc(1, sizeof(float));
+    float *bias = NULL;
+    if (use_bias == 1)
+    {
+        bias = calloc(1, sizeof(float));
+    }
 
     for (int c_out = 0; c_out < out->c; c_out++)
     {
@@ -70,9 +80,12 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
                 debug("Read conv2d weights error!");
             }
         }
-        if (!fread(bias, sizeof(float), 1, file))
+        if (use_bias == 1)
         {
-            debug("Read conv2d bias error!");
+            if (!fread(bias, sizeof(float), 1, file))
+            {
+                debug("Read conv2d bias error!");
+            }
         }
         /*  
         for(int i = 0; i < conv_w*conv_h*in_c; i++)
@@ -104,7 +117,10 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
                         }
                     }
                 }
-                out->data[c_out * out->w * out->h + h * out->w + w] += bias[0];
+                if (use_bias == 1)
+                {
+                    out->data[c_out * out->w * out->h + h * out->w + w] += bias[0];
+                }
             }
         }
     }
@@ -208,6 +224,29 @@ void activation_load_inference(FILE *file, in_out *in)
     //debug("%f", in->data[5*in->w*in->h + 5*in->w + 4]);
 }
 
+void leakyrelu_load_inference(FILE *file, in_out *in)
+{
+    float alpha = 0; //fgetc(file);
+    if (!fread(&alpha, sizeof(float), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    debug("leakyrelu alpha: %f", alpha);
+    for (int c = 0; c < in->c; c++)
+    {
+        for (int h = 0; h < in->h; h++)
+        {
+            for (int w = 0; w < in->w; w++)
+            {
+                in->data[c * in->w * in->h + h * in->w + w] =
+                    in->data[c * in->w * in->h + h * in->w + w] > 0 ? in->data[c * in->w * in->h + h * in->w + w] : in->data[c * in->w * in->h + h * in->w + w] * alpha;
+            }
+        }
+    }
+    //print_in_out(*in);
+    //debug("%f", in->data[5*in->w*in->h + 5*in->w + 4]);
+}
+
 void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
 {
     int pool_w = 0; //fgetc(file);
@@ -236,34 +275,38 @@ void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
         out->c = in->c;
         out->data = calloc(out->w * out->h * out->c, sizeof(float));
         debug("out:%d x %d x %d", out->w, out->h, out->c);
-    }
-    else
-    {
-        debug("Read maxpooling type error!");
-        exit(0);
-    }
-
-    for (int c_out = 0; c_out < out->c; c_out++)
-    {
-        for (int h = 0; h < out->h; h++)
+        for (int c_out = 0; c_out < out->c; c_out++)
         {
-            for (int w = 0; w < out->w; w++)
+            for (int h = 0; h < out->h; h++)
             {
-                float max = -FLT_MAX;
-                for (int y = 0; y < pool_h; y++)
+                for (int w = 0; w < out->w; w++)
                 {
-                    int index_h = h * stride + y;
-                    for (int x = 0; x < pool_w; x++)
+                    float max = -FLT_MAX;
+                    for (int y = 0; y < pool_h; y++)
                     {
-                        int index_w = w * stride + x;
-                        max =
-                            in->data[c_out * in->w * in->h + index_h * in->w + index_w] > max ? in->data[c_out * in->w * in->h + index_h * in->w + index_w] : max;
+                        int index_h = h * stride + y;
+                        for (int x = 0; x < pool_w; x++)
+                        {
+                            int index_w = w * stride + x;
+                            max =
+                                in->data[c_out * in->w * in->h + index_h * in->w + index_w] > max ? in->data[c_out * in->w * in->h + index_h * in->w + index_w] : max;
+                        }
                     }
+                    out->data[c_out * out->w * out->h + h * out->w + w] = max;
                 }
-                out->data[c_out * out->w * out->h + h * out->w + w] = max;
             }
         }
     }
+    else if (type == 2) // same
+    {
+        stride = 1;
+        out->w = in->w;
+        out->h = in->h;
+        out->c = in->c;
+        out->data = calloc(out->w * out->h * out->c, sizeof(float));
+        debug("out:%d x %d x %d", out->w, out->h, out->c);
+    }
+    //FIXME for type same
 
     //print_in_out(*out);
     //debug("%f", out->data[2*out->w*out->h + 1*out->w + 1]);
@@ -356,8 +399,7 @@ void dense_load_inference(FILE *file, in_out *in, in_out *out)
     free_in_out(in);
 }
 
-
-void uInference(char *model_name, char *filename)
+void uInference_classification(char *model_name, char *filename)
 {
     debug("model_name: %s, filename: %s", model_name, filename);
     int resize_w = 16;
@@ -444,6 +486,119 @@ void uInference(char *model_name, char *filename)
             break;
         default:
             debug("layer_type: %d not recognized!", layer_type);
+            exit(0);
+        }
+    }
+    fclose(file);
+    // free
+    free_in_out(in);
+    free_in_out(&out);
+    free_in_out(&im);
+}
+
+void uInference_obejectdetection(char *model_name, char *filename)
+{
+    debug("model_name: %s, filename: %s", model_name, filename);
+    int resize_w = 320;
+    int resize_h = 105;
+
+    // load image and normalize
+    in_out im = load_image(filename, resize_w, resize_h, 1);
+    //print_in_out(im);
+
+    // load model and weights and inference
+    FILE *file = fopen(model_name, "rb");
+    if (file == 0)
+    {
+        printf("Couldn't open file: %s\n", model_name);
+        exit(0);
+    }
+
+    in_out *in = &im;
+    in_out out = {0, 0, 0, NULL};
+    while (1)
+    {
+        int layer_type = 0; //fgetc(file);
+        if (!fread(&layer_type, sizeof(char), 1, file))
+        {
+            debug("Read weights finished!");
+            break;
+        }
+        debug("layer type: %d", layer_type);
+        switch (layer_type)
+        {
+        case 1: //Conv2D
+            debug("Layer Conv2D");
+            debug("in: %d x %d x %d", in->w, in->h, in->c);
+            conv2d_load_inference(file, in, &out);
+            in->c = out.c;
+            in->w = out.w;
+            in->h = out.h;
+            in->data = out.data;
+            out.data = NULL;
+            break;
+        case 2: //BatchNormalization
+            debug("Layer BatchNormalization");
+            debug("in: %d x %d x %d", in->w, in->h, in->c);
+            bn_load_inference(file, in);
+            break;
+        case 3: //Activation
+            debug("Layer Activation");
+            debug("in: %d x %d x %d", in->w, in->h, in->c);
+            activation_load_inference(file, in);
+            break;
+        case 4: //MaxPooling2D
+            debug("Layer MaxPooling2D");
+            debug("in: %d x %d x %d", in->w, in->h, in->c);
+            maxpooling_load_inference(file, in, &out);
+            in->c = out.c;
+            in->w = out.w;
+            in->h = out.h;
+            in->data = out.data;
+            out.data = NULL;
+            break;
+        case 5: //Flatten
+            debug("Layer Flatten");
+            debug("in: %d x %d x %d", in->w, in->h, in->c);
+            flatten_load_inference(file, in);
+            break;
+        case 6: //Dense
+            debug("Layer Dense");
+            debug("in: %d x %d x %d", in->w, in->h, in->c);
+            dense_load_inference(file, in, &out);
+            in->c = out.c;
+            in->w = out.w;
+            in->h = out.h;
+            in->data = out.data;
+            out.data = NULL;
+            break;
+        case 7: //InputLayer
+            debug("Layer InputLayer");
+
+            break;
+        case 8: // Model
+            debug("Layer Model");
+
+            break;
+        case 9: // Reshape
+            debug("Layer Reshape");
+
+            break;
+        case 10: // Lambda
+            debug("Layer Lambda");
+
+            break;
+        case 11: // LeakyReLU
+            debug("Layer LeakyReLU");
+            leakyrelu_load_inference(file, in);
+
+            break;
+        default:
+            debug("layer_type: %d not recognized!", layer_type);
+            fclose(file);
+            free_in_out(in);
+            free_in_out(&out);
+            free_in_out(&im);
             exit(0);
         }
     }

@@ -387,7 +387,7 @@ class TinyYoloFeature_5(BaseFeatureExtractor):
 
         self.feature_extractor = Model(input_image, x)  
         #self.feature_extractor.load_weights(TINY_YOLO_BACKEND_PATH)
-        self.feature_extractor.summary()
+        #self.feature_extractor.summary()
 
     def normalize(self, image):
         return image / 255.
