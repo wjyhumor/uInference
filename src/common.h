@@ -20,7 +20,9 @@ typedef struct
 
 in_out load_image(char *filename, int w, int h, int c);
 void normalize_image(in_out *im, float mean, float std);
-void print_in_out(in_out im);
+void normalize_image_255(in_out *im);
 void free_in_out(in_out *m);
+void print_in_out(in_out im);
+void save_in_out(in_out im);
 
 #endif

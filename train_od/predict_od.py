@@ -91,10 +91,13 @@ def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.
                     x = (col + _sigmoid(x)) / grid_w
                     # center position, unit: image height
                     y = (row + _sigmoid(y)) / grid_h
-                    w = anchors[2 * b + 0] * np.exp(w) / grid_w  # unit: image width
-                    h = anchors[2 * b + 1] * np.exp(h) / grid_h  # unit: image height
+                    w = anchors[2 * b + 0] * \
+                        np.exp(w) / grid_w  # unit: image width
+                    h = anchors[2 * b + 1] * \
+                        np.exp(h) / grid_h  # unit: image height
                     confidence = netout[row, col, b, 4]
-                    box = BoundBox(x-w/2, y-h/2, x+w/2, y+h/2, confidence, classes)
+                    box = BoundBox(x-w/2, y-h/2, x+w/2, y +
+                                   h/2, confidence, classes)
                     boxes.append(box)
     # suppress non-maximal boxes
     for c in range(nb_class):
@@ -113,6 +116,29 @@ def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.
     boxes = [box for box in boxes if box.get_score() > obj_threshold]
     return boxes
 
+def save_layer(layer_to_save):
+    path = "../temp_save_layer_predict.txt"
+    fout = open(path, 'w')
+    """
+    for i in range(layer_to_save.shape[1]):
+        for j in range(layer_to_save.shape[2]):
+            fout.write('{:=9f},'.format(layer_to_save[0, i, j, 0]))
+        fout.write('\n')
+    return 
+    """
+    if len(layer_to_save.shape) == 4:
+        for l in range(layer_to_save.shape[3]): # output
+            for j in range(layer_to_save.shape[1]): # height
+                for k in range(layer_to_save.shape[2]): # width
+                    for i in range(layer_to_save.shape[0]): # input
+                        fout.write('{:=9f},'.format(layer_to_save[i, j, k, l]))
+                fout.write('\n')
+    elif len(layer_to_save.shape) == 3:
+        for j in range(layer_to_save.shape[1]):
+            for k in range(layer_to_save.shape[2]):
+                for i in range(layer_to_save.shape[0]):
+                    fout.write('{:=9f},'.format(layer_to_save[i, j, k]))
+                fout.write('\n')
 
 def _main_():
     image_path = "../ex_od.jpg"
@@ -132,13 +158,16 @@ def _main_():
     yolo.load_weights(saved_weights_name)
     # input image
     image_org = cv2.imread(image_path)
-    image_h, image_w, _ = image_org.shape
+    image_h, image_w, image_c = image_org.shape
+    print(image_org.shape)
     image = cv2.resize(image_org, (yolo.input_width, yolo.input_height))
+    cv2.imwrite(image_path,image[:, :, 1])
     image = yolo.feature_extractor.normalize(image)
-    image = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140])
-    image = np.reshape(image, (image.shape[0], image.shape[1], 1))
+    #image = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140])
+    image = np.reshape(image[:, :, 1], (image.shape[0], image.shape[1], 1))
     input_image = image[:, :, ::-1]
     input_image = np.expand_dims(input_image, 0)
+
     dummy_array = np.zeros((1, 1, 1, 1, yolo.max_box_per_image, 4))
     # forward NN
     netout = yolo.model.predict([input_image, dummy_array])[0]
@@ -158,7 +187,7 @@ def _main_():
                                   [yolo.model.layers[1].get_output_at(1)])
     layer_output = get_layer_output([input_image, dummy_array])[0]
     print "layer_output1:", np.shape(layer_output)
-    #print layer_output
+    # print layer_output
 
     """
     weights = yolo.model.layers[1].get_weights()
@@ -183,10 +212,13 @@ def _main_():
     print "layer_output3:", np.shape(layer_output)
 
     print"----------------"
+    layer_number = 24
     get_layer_output = K.function([yolo.feature_extractor.feature_extractor.layers[0].input],
-                                  [yolo.feature_extractor.feature_extractor.layers[4].output])
+                                  [yolo.feature_extractor.feature_extractor.layers[layer_number].output])
     layer_output = get_layer_output([input_image])[0]
-    print "sub layer_output:", np.shape(layer_output)
+    print yolo.feature_extractor.feature_extractor.layers[layer_number].name, "'s output:", np.shape(layer_output)
+    save_layer(layer_output)
+
 
 if __name__ == '__main__':
     _main_()

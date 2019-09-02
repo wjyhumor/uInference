@@ -225,6 +225,25 @@ void print_in_out(in_out im)
     }
 }
 
+void save_in_out(in_out im)
+{
+    char *filename = "./temp_save_layer_c.txt";
+    FILE *file = fopen(filename, "w");
+    for (int k = 0; k < im.c; k++)
+    {
+        for (int j = 0; j < im.h; j++)
+        {
+            for (int i = 0; i < im.w; i++)
+            {
+                fprintf(file, "%9f,", im.data[k * im.w * im.h + j * im.w + i]);
+                //printf("%9f ", im.data[k * im.w * im.h + j * im.w + i]);
+            }
+            fprintf(file, "\n");
+            //printf("\n");
+        }
+    }
+}
+
 void normalize_image(in_out *im, float mean, float std)
 {
     for (int k = 0; k < im->c; k++)
@@ -235,6 +254,20 @@ void normalize_image(in_out *im, float mean, float std)
             {
                 im->data[k * im->w * im->h + j * im->w + i] -= mean;
                 im->data[k * im->w * im->h + j * im->w + i] /= std;
+            }
+        }
+    }
+}
+
+void normalize_image_255(in_out *im)
+{
+    for (int k = 0; k < im->c; k++)
+    {
+        for (int j = 0; j < im->h; j++)
+        {
+            for (int i = 0; i < im->w; i++)
+            {
+                im->data[k * im->w * im->h + j * im->w + i] /= 255.0f;
             }
         }
     }

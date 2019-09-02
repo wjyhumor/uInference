@@ -30,8 +30,9 @@ Total params: 4,170
 Trainable params: 4,122  
 Non-trainable params: 48  
 
-* Memory used:15.59KB   
-* weigths (save_model_binary): 16.7KB
+* RAM:15.59KB   
+* ROM: 16.7KB
+* Speed: 5.577000 ms @Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
 
 # Object Detection
 ## Training (in `tran_od/`)
@@ -106,6 +107,9 @@ Total params: 46,687
 Trainable params: 46,303  
 Non-trainable params: 384  
 
+RAM: 661.9 KB
+ROM: 187 KB
+Speed: 
 
 # Check leakage:
 ```

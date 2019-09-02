@@ -10,7 +10,6 @@ void maxpooling_load_inference(FILE *file, in_out *in, in_out *out);
 void flatten_load_inference(FILE *file, in_out *in);
 void dense_load_inference(FILE *file, in_out *in, in_out *out);
 
-void uInference_classification(char *model_name, char *filename);
-void uInference_obejectdetection(char *model_name, char *filename);
+void uInference(char *model_name, char *filename);
 
 #endif
