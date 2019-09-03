@@ -108,8 +108,8 @@ Trainable params: 46,303
 Non-trainable params: 384  
 
 RAM: 661.9 KB
-ROM: 187 KB
-Speed: 
+ROM: 186.9 KB
+Speed: 20 ms
 
 # Check leakage:
 ```

@@ -3,12 +3,12 @@
 
 #include "common.h"
 
-void conv2d_load_inference(FILE *file, in_out *in, in_out *out);
+void conv2d_load_inference(FILE *file, in_out *in);
 void bn_load_inference(FILE *file, in_out *in);
 void activation_load_inference(FILE *file, in_out *in);
-void maxpooling_load_inference(FILE *file, in_out *in, in_out *out);
+void maxpooling_load_inference(FILE *file, in_out *in);
 void flatten_load_inference(FILE *file, in_out *in);
-void dense_load_inference(FILE *file, in_out *in, in_out *out);
+void dense_load_inference(FILE *file, in_out *in);
 
 void uInference(char *model_name, char *filename);
 

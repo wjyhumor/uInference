@@ -75,6 +75,7 @@ def bbox_iou(box1, box2):
 
 def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.3):
     grid_h, grid_w, nb_box = netout.shape[:3]
+    print grid_h, grid_w, nb_box
     boxes = []
     # decode the output by the network
     netout[..., 4] = _sigmoid(netout[..., 4])
@@ -142,6 +143,13 @@ def save_layer(layer_to_save):
                 for i in range(layer_to_save.shape[0]):
                     fout.write('{:=9f},'.format(layer_to_save[i, j, k]))
                 fout.write('\n')
+    elif len(layer_to_save.shape) == 5:
+        for l in range(layer_to_save.shape[3]):  # 
+            for j in range(layer_to_save.shape[4]):  # 
+                for i in range(layer_to_save.shape[1]):  # 
+                    for k in range(layer_to_save.shape[2]):  # 
+                        fout.write('{:=9f},'.format(layer_to_save[0, i, k, l, j]))
+                    fout.write('\n')
 
 
 def _main_():
@@ -163,7 +171,7 @@ def _main_():
     # input image
     image_org = cv2.imread(image_path)
     image_h, image_w, image_c = image_org.shape
-    print(image_org.shape)
+    #print(image_org.shape)
     image = cv2.resize(image_org, (yolo.input_width, yolo.input_height))
     cv2.imwrite(image_path, image[:, :, 1])
     image = yolo.feature_extractor.normalize(image)
@@ -171,10 +179,11 @@ def _main_():
     image = np.reshape(image[:, :, 1], (image.shape[0], image.shape[1], 1))
     input_image = image[:, :, ::-1]
     input_image = np.expand_dims(input_image, 0)
-
     dummy_array = np.zeros((1, 1, 1, 1, yolo.max_box_per_image, 4))
     # forward NN
     netout = yolo.model.predict([input_image, dummy_array])[0]
+    print netout.shape
+    save_layer(netout)
     # get box
     boxes = decode_netout(netout, yolo.anchors, yolo.nb_class)
     print(len(boxes), 'boxes are found')
@@ -206,15 +215,14 @@ def _main_():
     w = yolo.model.layers[2].get_weights()[0]
     b = yolo.model.layers[2].get_weights()[1]
     print "layer_output2:", np.shape(layer_output)
-    print "w:", w.shape, "b:", b.shape
-    save_layer(layer_output)
+    #print "w:", w.shape, "b:", b.shape
 
     print"----------------"
     get_layer_output = K.function([yolo.model.layers[0].input],
                                   [yolo.model.layers[3].output])
     layer_output = get_layer_output([input_image, dummy_array])[0]
     print "layer_output3:", np.shape(layer_output)
-
+    #save_layer(layer_output)
     """
     print"----------------"
     layer_number = 27
