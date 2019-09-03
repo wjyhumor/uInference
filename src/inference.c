@@ -3,37 +3,37 @@
 void conv2d_load_inference(FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
-    int conv_w = 0;  
+    int conv_w = 0;
     if (!fread(&conv_w, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int conv_h = 0;  
+    int conv_h = 0;
     if (!fread(&conv_h, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int in_c = 0;  
+    int in_c = 0;
     if (!fread(&in_c, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int out_c = 0;  
+    int out_c = 0;
     if (!fread(&out_c, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int stride = 0;  
+    int stride = 0;
     if (!fread(&stride, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int type = 0;   //{"valid":1, "same":2}
+    int type = 0; //{"valid":1, "same":2}
     if (!fread(&type, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int use_bias = 0;   //{"valid":1, "same":2}
+    int use_bias = 0; //{"valid":1, "same":2}
     if (!fread(&use_bias, sizeof(char), 1, file))
     {
         debug("Read weights error!");
@@ -176,8 +176,9 @@ void bn_load_inference(FILE *file, in_out *in)
             {
 
                 in->data[c * in->w * in->h + h * in->w + w] =
-                    (in->data[c * in->w * in->h + h * in->w + w] - mean) / \
-                    sqrtf(variance + 0.001) * gamma + beta;
+                    (in->data[c * in->w * in->h + h * in->w + w] - mean) /
+                        sqrtf(variance + 0.001) * gamma +
+                    beta;
             }
         }
         debug();
@@ -186,7 +187,7 @@ void bn_load_inference(FILE *file, in_out *in)
 
 void activation_load_inference(FILE *file, in_out *in)
 {
-    int type = 0;  
+    int type = 0;
     if (!fread(&type, sizeof(char), 1, file))
     {
         debug("Read weights error!");
@@ -233,7 +234,7 @@ void activation_load_inference(FILE *file, in_out *in)
 
 void leakyrelu_load_inference(FILE *file, in_out *in)
 {
-    float alpha = 0;  
+    float alpha = 0;
     if (!fread(&alpha, sizeof(float), 1, file))
     {
         debug("Read weights error!");
@@ -255,17 +256,17 @@ void leakyrelu_load_inference(FILE *file, in_out *in)
 void maxpooling_load_inference(FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
-    int pool_w = 0;  
+    int pool_w = 0;
     if (!fread(&pool_w, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int pool_h = 0;  
+    int pool_h = 0;
     if (!fread(&pool_h, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int type = 0;   //{"valid":1, "same":2}
+    int type = 0; //{"valid":1, "same":2}
     if (!fread(&type, sizeof(char), 1, file))
     {
         debug("Read weights error!");
@@ -381,12 +382,12 @@ void flatten_load_inference(FILE *file, in_out *in)
 void dense_load_inference(FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
-    int in_w = 0;  
+    int in_w = 0;
     if (!fread(&in_w, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int out_w = 0;  
+    int out_w = 0;
     if (!fread(&out_w, sizeof(char), 1, file))
     {
         debug("Read weights error!");
@@ -438,37 +439,161 @@ void dense_load_inference(FILE *file, in_out *in)
     out.data = NULL;
 }
 
-void uInference(char *model_name, char *filename)
+float sigmoid(float x)
 {
-    debug("model_name: %s, filename: %s", model_name, filename);
-    /*  Object detection */
-    int resize_w = 320;
-    int resize_h = 105;
-    in_out im = load_image(filename, resize_w, resize_h, 1);
-    normalize_image_255(&im);
-    
-    /*  Classification 
-    int resize_w = 16;
-    int resize_h = 16;
-    float mean = 122.81543917085412;
-    float std = 77.03797602437342;
-    in_out im = load_image(filename, resize_w, resize_h, 1);
-    normalize_image(&im, mean, std);
-   */
+    return 1.0f / (1.0f + exp(-x));
+}
 
-    // load model and weights and inference
+void yolo_v2(in_out *in, int resize_w, int resize_h)
+{
+    float anchors[] = {1.05, 5.13, 1.10, 3.60, 1.16, 5.14, 1.24, 4.22, 1.34, 5.24};
+    float obj_threshold = 0.3;
+    float mns_threshold = 0.3;
+    int grid_h = in->h;         //10
+    int grid_w = in->w;         //3
+    int nb_box = 5;             // #anchors
+    int paras = in->c / nb_box; //15
+    debug("grid_h:%d, grid_w:%d, nb_box:%d", grid_h, grid_w, nb_box);
+    // sigmoid for the 5th of each bbox
+    for (int e = 0; e < nb_box; e++)
+    {
+        for (int j = 0; j < in->h; j++)
+        {
+            for (int k = 0; k < in->w; k++)
+            {
+                in->data[e * paras * grid_h * grid_w + 4 * grid_h * grid_w + j * grid_w + k] =
+                    sigmoid(in->data[e * paras * grid_h * grid_w + 4 * grid_h * grid_w + j * grid_w + k]);
+            }
+        }
+    }
+    // softmax for 6th to 15th of each box, x 4th element and filter by obj_theshold
+    for (int e = 0; e < nb_box; e++)
+    {
+        for (int j = 0; j < in->h; j++)
+        {
+            for (int k = 0; k < in->w; k++)
+            {
+                float sum = 0;
+                float largest = -FLT_MAX;
+                float smallest = FLT_MAX;
+                for (int i = 5; i < 15; i++)
+                {
+                    float tmp = in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k];
+                    if (tmp > largest)
+                    {
+                        largest = tmp;
+                    }
+                    if (tmp < smallest)
+                    {
+                        smallest = tmp;
+                    }
+                }
+                for (int i = 5; i < 15; i++)
+                {
+                    float tmp = in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k];
+                    tmp -= largest;
+                    if (smallest < -100)
+                    {
+                        tmp = tmp / smallest * -100;
+                    }
+                    tmp = expf(tmp);
+                    sum += tmp;
+                    in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k] = tmp;
+                }
+                for (int i = 5; i < 15; i++)
+                {
+                    in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k] /= sum;
+                    in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k] *=
+                        in->data[e * paras * grid_h * grid_w + 4 * grid_h * grid_w + j * grid_w + k];
+                    in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k] =
+                        in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k] > obj_threshold ? in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k] : 0;
+                }
+            }
+        }
+    }
+    // get bbox
+    bbox *box_list[10];
+    int index_box = 0;
+    for (int e = 0; e < nb_box; e++)
+    {
+        for (int j = 0; j < grid_h; j++)
+        {
+            for (int k = 0; k < grid_w; k++)
+            {
+                float sum = 0;
+                for (int i = 5; i < 15; i++)
+                {
+                    sum += in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k];
+                }
+                if (sum > 0)
+                {
+                    float x = in->data[e * paras * grid_h * grid_w + 0 * grid_h * grid_w + j * grid_w + k];
+                    float y = in->data[e * paras * grid_h * grid_w + 1 * grid_h * grid_w + j * grid_w + k];
+                    float w = in->data[e * paras * grid_h * grid_w + 2 * grid_h * grid_w + j * grid_w + k];
+                    float h = in->data[e * paras * grid_h * grid_w + 3 * grid_h * grid_w + j * grid_w + k];
+                    x = ((float)k + sigmoid(x)) / (float)grid_w;
+                    y = ((float)j + sigmoid(y)) / (float)grid_h;
+                    w = anchors[2 * e + 0] * exp(w) / (float)grid_w;
+                    h = anchors[2 * e + 1] * exp(h) / (float)grid_h;
+                    float confidence = in->data[e * paras * grid_h * grid_w + 4 * grid_h * grid_w + j * grid_w + k];
+                    //debug("%f, %f, %f, %f, %f", x, y, w, h, confidence);
+                    box_list[index_box] = calloc(1, sizeof(bbox));
+                    box_list[index_box]->xmin = x - w / 2.0f;
+                    box_list[index_box]->ymin = y - h / 2.0f;
+                    box_list[index_box]->xmax = x + w / 2.0f;
+                    box_list[index_box]->ymax = y + h / 2.0f;
+                    box_list[index_box]->confidence = confidence;
+                    float max = -FLT_MAX;
+                    for (int i = 5; i < 15; i++)
+                    {
+                        if (max < in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k])
+                        {
+                            box_list[index_box]->label = i - 5;
+                            box_list[index_box]->score = in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k];
+                            max = in->data[e * paras * grid_h * grid_w + i * grid_h * grid_w + j * grid_w + k];
+                        }
+                    }
+                    index_box++;
+                    if (index_box >= 10)
+                    {
+                        debug("Error: Not enough buffer for bbox!");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    debug("index_box: %d", index_box);
+    // debug
+    for (int i = 0; i < index_box; i++)
+    {
+        debug("%d, %f, %d, %d, %d, %d",
+              box_list[i]->label, box_list[i]->score,
+              (int)(box_list[i]->xmin * resize_w), 
+              (int)(box_list[i]->xmax * resize_w), 
+              (int)(box_list[i]->ymin * resize_h),
+              (int)(box_list[i]->ymax * resize_h));
+        free(box_list[i]);
+    }
+
+}
+
+in_out *uInference(in_out *im, char *model_name)
+{
+    in_out *in = im;
+    debug("model_name: %s", model_name);
+
     FILE *file = fopen(model_name, "rb");
     if (file == 0)
     {
         printf("Couldn't open file: %s\n", model_name);
-        return;
+        return in;
     }
 
-    in_out *in = &im;
     int layer = 0;
     while (1)
     {
-        int layer_type = 0; 
+        int layer_type = 0;
         if (!fread(&layer_type, sizeof(char), 1, file))
         {
             debug("Read weights finished!");
@@ -532,19 +657,20 @@ void uInference(char *model_name, char *filename)
             debug("layer_type: %d not recognized!", layer_type);
             fclose(file);
             free_in_out(in);
-            free_in_out(&im);
-            return;
+            return in;
         }
+        /*
         if (layer == 33)
         {
             save_in_out(*in);
             debug("shape:w=%d,h=%d,c=%d", in->w, in->h, in->c);
             printf("layer %d, type %d saved\n", layer, layer_type);
         }
+        */
         layer++;
     }
     debug("Number of layers: %d", layer);
     fclose(file);
-    free_in_out(in);
-    free_in_out(&im);
+
+    return in;
 }

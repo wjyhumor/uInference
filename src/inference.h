@@ -10,6 +10,8 @@ void maxpooling_load_inference(FILE *file, in_out *in);
 void flatten_load_inference(FILE *file, in_out *in);
 void dense_load_inference(FILE *file, in_out *in);
 
-void uInference(char *model_name, char *filename);
+in_out* uInference(in_out *im, char *model_name);
+
+void yolo_v2(in_out *in, int resize_w, int resize_h);
 
 #endif

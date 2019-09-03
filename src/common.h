@@ -18,6 +18,18 @@ typedef struct
     float *data;
 } in_out;
 
+typedef struct 
+{
+    float xmin;
+    float ymin;
+    float xmax;
+    float ymax;
+    float confidence;
+    int label;
+    float score;
+} bbox;
+
+
 in_out load_image(char *filename, int w, int h, int c);
 void normalize_image(in_out *im, float mean, float std);
 void normalize_image_255(in_out *im);

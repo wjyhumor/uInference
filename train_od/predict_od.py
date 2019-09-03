@@ -11,6 +11,48 @@ from keras.layers import *
 from frontend import YOLO
 import utils
 
+def save_layer(layer_to_save):
+    path = "../temp_save_layer_predict.txt"
+    fout = open(path, 'w')
+    # (3, 10, 5, 15)
+    if len(layer_to_save.shape) == 4:
+        for k in range(layer_to_save.shape[2]):  # 5
+            for l in range(layer_to_save.shape[3]):  # 15
+                for i in range(layer_to_save.shape[0]):  # 3
+                    for j in range(layer_to_save.shape[1]):  # 10
+                        fout.write('{:=9f},'.format(layer_to_save[i, j, k, l]))
+                    fout.write('\n')
+    """
+    for i in range(layer_to_save.shape[1]):
+        for j in range(layer_to_save.shape[2]):
+            fout.write('{:=9f},'.format(layer_to_save[0, i, j, 0]))
+        fout.write('\n')
+    return 
+    """
+    """
+    if len(layer_to_save.shape) == 4:
+        for l in range(layer_to_save.shape[3]):  # output
+            for j in range(layer_to_save.shape[1]):  # height
+                for k in range(layer_to_save.shape[2]):  # width
+                    for i in range(layer_to_save.shape[0]):  # input
+                        fout.write('{:=9f},'.format(layer_to_save[i, j, k, l]))
+                fout.write('\n')
+    elif len(layer_to_save.shape) == 3:
+        for j in range(layer_to_save.shape[1]):
+            for k in range(layer_to_save.shape[2]):
+                for i in range(layer_to_save.shape[0]):
+                    fout.write('{:=9f},'.format(layer_to_save[i, j, k]))
+                fout.write('\n')
+    elif len(layer_to_save.shape) == 5:
+        for l in range(layer_to_save.shape[3]):  #
+            for j in range(layer_to_save.shape[4]):  #
+                for i in range(layer_to_save.shape[1]):  #
+                    for k in range(layer_to_save.shape[2]):  #
+                        fout.write('{:=9f},'.format(
+                            layer_to_save[0, i, k, l, j]))
+                    fout.write('\n')
+    """
+
 
 class BoundBox:
     def __init__(self, xmin, ymin, xmax, ymax, c=None, classes=None):
@@ -74,14 +116,18 @@ def bbox_iou(box1, box2):
 
 
 def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.3):
+    # (3, 10, 5, 15)
     grid_h, grid_w, nb_box = netout.shape[:3]
-    print grid_h, grid_w, nb_box
+    # print grid_h, grid_w, nb_box
     boxes = []
     # decode the output by the network
     netout[..., 4] = _sigmoid(netout[..., 4])
     netout[..., 5:] = netout[..., 4][..., np.newaxis] * \
         _softmax(netout[..., 5:])
     netout[..., 5:] *= netout[..., 5:] > obj_threshold
+    print netout.shape
+    save_layer(netout)
+
     for row in range(grid_h):
         for col in range(grid_w):
             for b in range(nb_box):
@@ -102,6 +148,8 @@ def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.
                     box = BoundBox(x-w/2, y-h/2, x+w/2, y +
                                    h/2, confidence, classes)
                     boxes.append(box)
+                    print x, y, w, h, confidence
+    
     # suppress non-maximal boxes
     for c in range(nb_class):
         sorted_indices = list(
@@ -118,38 +166,6 @@ def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.
     # remove the boxes which are less likely than a obj_threshold
     boxes = [box for box in boxes if box.get_score() > obj_threshold]
     return boxes
-
-
-def save_layer(layer_to_save):
-    path = "../temp_save_layer_predict.txt"
-    fout = open(path, 'w')
-    """
-    for i in range(layer_to_save.shape[1]):
-        for j in range(layer_to_save.shape[2]):
-            fout.write('{:=9f},'.format(layer_to_save[0, i, j, 0]))
-        fout.write('\n')
-    return 
-    """
-    if len(layer_to_save.shape) == 4:
-        for l in range(layer_to_save.shape[3]):  # output
-            for j in range(layer_to_save.shape[1]):  # height
-                for k in range(layer_to_save.shape[2]):  # width
-                    for i in range(layer_to_save.shape[0]):  # input
-                        fout.write('{:=9f},'.format(layer_to_save[i, j, k, l]))
-                fout.write('\n')
-    elif len(layer_to_save.shape) == 3:
-        for j in range(layer_to_save.shape[1]):
-            for k in range(layer_to_save.shape[2]):
-                for i in range(layer_to_save.shape[0]):
-                    fout.write('{:=9f},'.format(layer_to_save[i, j, k]))
-                fout.write('\n')
-    elif len(layer_to_save.shape) == 5:
-        for l in range(layer_to_save.shape[3]):  # 
-            for j in range(layer_to_save.shape[4]):  # 
-                for i in range(layer_to_save.shape[1]):  # 
-                    for k in range(layer_to_save.shape[2]):  # 
-                        fout.write('{:=9f},'.format(layer_to_save[0, i, k, l, j]))
-                    fout.write('\n')
 
 
 def _main_():
@@ -171,7 +187,7 @@ def _main_():
     # input image
     image_org = cv2.imread(image_path)
     image_h, image_w, image_c = image_org.shape
-    #print(image_org.shape)
+    # print(image_org.shape)
     image = cv2.resize(image_org, (yolo.input_width, yolo.input_height))
     cv2.imwrite(image_path, image[:, :, 1])
     image = yolo.feature_extractor.normalize(image)
@@ -182,8 +198,6 @@ def _main_():
     dummy_array = np.zeros((1, 1, 1, 1, yolo.max_box_per_image, 4))
     # forward NN
     netout = yolo.model.predict([input_image, dummy_array])[0]
-    print netout.shape
-    save_layer(netout)
     # get box
     boxes = decode_netout(netout, yolo.anchors, yolo.nb_class)
     print(len(boxes), 'boxes are found')
@@ -191,7 +205,7 @@ def _main_():
     image_show = utils.draw_boxes(
         image_org, boxes, ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
     cv2.imwrite(image_path[:-4] + '_detected' + image_path[-4:], image_show)
-
+    """
     print"=================================="
     print(np.shape(image))
     print("input shape:"),
@@ -201,13 +215,12 @@ def _main_():
     layer_output = get_layer_output([input_image, dummy_array])[0]
     print "layer_output1:", np.shape(layer_output)
 
-    """
     weights = yolo.model.layers[1].get_weights()
     print(len(weights))
     for i in range(len(weights)):
         w = yolo.model.layers[1].get_weights()[i]
         print(w.shape)
-    """
+    
     print"----------------"
     get_layer_output = K.function([yolo.model.layers[0].input],
                                   [yolo.model.layers[2].output])
@@ -215,15 +228,15 @@ def _main_():
     w = yolo.model.layers[2].get_weights()[0]
     b = yolo.model.layers[2].get_weights()[1]
     print "layer_output2:", np.shape(layer_output)
-    #print "w:", w.shape, "b:", b.shape
+    # print "w:", w.shape, "b:", b.shape
 
     print"----------------"
     get_layer_output = K.function([yolo.model.layers[0].input],
                                   [yolo.model.layers[3].output])
     layer_output = get_layer_output([input_image, dummy_array])[0]
     print "layer_output3:", np.shape(layer_output)
-    #save_layer(layer_output)
-    """
+    # save_layer(layer_output)
+    
     print"----------------"
     layer_number = 27
     get_layer_output = K.function([yolo.feature_extractor.feature_extractor.layers[0].input],
@@ -245,6 +258,7 @@ def _main_():
     predictions = test_model.predict(test_input)
     print predictions[0]
     """
+
 
 if __name__ == '__main__':
     _main_()

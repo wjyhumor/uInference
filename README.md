@@ -8,7 +8,7 @@ uInference is a inference framework which could run Classification and Object De
 4. In folder `train_class/`, run `predict_class.py` to run the example.jpg, compare the results, you will see that the outputs are exactly the same.
 
 # Classification
-## Training (in `tran_class/`)
+## Training (in `train_class/`)
 Run `python train.py`.
 
 ## DNN model example for classification
@@ -35,7 +35,7 @@ Non-trainable params: 48
 * Speed: 5.577000 ms @Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
 
 # Object Detection
-## Training (in `tran_od/`)
+## Training (in `train_od/`)
 1. Generate anchors for your dataset (optional)  
 `python gen_anchors.py -c config.json`  
 Copy the generated anchors printed on the terminal to the `anchors` setting in `config.json`.
@@ -107,9 +107,9 @@ Total params: 46,687
 Trainable params: 46,303  
 Non-trainable params: 384  
 
-RAM: 661.9 KB
-ROM: 186.9 KB
-Speed: 20 ms
+RAM: 661.9 KB  
+ROM: 186.9 KB  
+Speed: 19.558001 ms @Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz  
 
 # Check leakage:
 ```

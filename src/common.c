@@ -242,6 +242,7 @@ void save_in_out(in_out im)
             //printf("\n");
         }
     }
+    fclose(file);
 }
 
 void normalize_image(in_out *im, float mean, float std)
