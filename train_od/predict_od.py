@@ -6,6 +6,8 @@ import json
 import numpy as np
 from tqdm import tqdm
 from keras import backend as K
+from keras.models import Sequential
+from keras.layers import *
 from frontend import YOLO
 import utils
 
@@ -116,6 +118,7 @@ def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.
     boxes = [box for box in boxes if box.get_score() > obj_threshold]
     return boxes
 
+
 def save_layer(layer_to_save):
     path = "../temp_save_layer_predict.txt"
     fout = open(path, 'w')
@@ -127,10 +130,10 @@ def save_layer(layer_to_save):
     return 
     """
     if len(layer_to_save.shape) == 4:
-        for l in range(layer_to_save.shape[3]): # output
-            for j in range(layer_to_save.shape[1]): # height
-                for k in range(layer_to_save.shape[2]): # width
-                    for i in range(layer_to_save.shape[0]): # input
+        for l in range(layer_to_save.shape[3]):  # output
+            for j in range(layer_to_save.shape[1]):  # height
+                for k in range(layer_to_save.shape[2]):  # width
+                    for i in range(layer_to_save.shape[0]):  # input
                         fout.write('{:=9f},'.format(layer_to_save[i, j, k, l]))
                 fout.write('\n')
     elif len(layer_to_save.shape) == 3:
@@ -139,6 +142,7 @@ def save_layer(layer_to_save):
                 for i in range(layer_to_save.shape[0]):
                     fout.write('{:=9f},'.format(layer_to_save[i, j, k]))
                 fout.write('\n')
+
 
 def _main_():
     image_path = "../ex_od.jpg"
@@ -161,7 +165,7 @@ def _main_():
     image_h, image_w, image_c = image_org.shape
     print(image_org.shape)
     image = cv2.resize(image_org, (yolo.input_width, yolo.input_height))
-    cv2.imwrite(image_path,image[:, :, 1])
+    cv2.imwrite(image_path, image[:, :, 1])
     image = yolo.feature_extractor.normalize(image)
     #image = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140])
     image = np.reshape(image[:, :, 1], (image.shape[0], image.shape[1], 1))
@@ -187,7 +191,6 @@ def _main_():
                                   [yolo.model.layers[1].get_output_at(1)])
     layer_output = get_layer_output([input_image, dummy_array])[0]
     print "layer_output1:", np.shape(layer_output)
-    # print layer_output
 
     """
     weights = yolo.model.layers[1].get_weights()
@@ -204,6 +207,7 @@ def _main_():
     b = yolo.model.layers[2].get_weights()[1]
     print "layer_output2:", np.shape(layer_output)
     print "w:", w.shape, "b:", b.shape
+    save_layer(layer_output)
 
     print"----------------"
     get_layer_output = K.function([yolo.model.layers[0].input],
@@ -211,14 +215,28 @@ def _main_():
     layer_output = get_layer_output([input_image, dummy_array])[0]
     print "layer_output3:", np.shape(layer_output)
 
+    """
     print"----------------"
-    layer_number = 24
+    layer_number = 27
     get_layer_output = K.function([yolo.feature_extractor.feature_extractor.layers[0].input],
                                   [yolo.feature_extractor.feature_extractor.layers[layer_number].output])
     layer_output = get_layer_output([input_image])[0]
     print yolo.feature_extractor.feature_extractor.layers[layer_number].name, "'s output:", np.shape(layer_output)
     save_layer(layer_output)
-
+    
+    print"----------------"
+    test_input = np.array(
+        [range(1, 11, 1), range(11, 21, 1), range(21, 31, 1)])
+    test_input = np.reshape(test_input, (1, 3, 10, 1))
+    print test_input.shape
+    #print test_input
+    test_model = Sequential()
+    test_model.add(MaxPooling2D(pool_size=(2, 2),
+                                strides=(1, 1), padding='same'))
+    
+    predictions = test_model.predict(test_input)
+    print predictions[0]
+    """
 
 if __name__ == '__main__':
     _main_()

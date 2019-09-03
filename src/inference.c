@@ -38,17 +38,22 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
         debug("Read weights error!");
     }
     debug("use_bias: %d", use_bias);
-    int pad = 0;
-    //debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, stride:%d, type:%d",
-    //    conv_w, conv_h, in_c, out_c, stride, type);
+    debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, stride:%d, type:%d",
+          conv_w, conv_h, in_c, out_c, stride, type);
 
+    int pad_w = 0;
+    int pad_h = 0;
     if (type == 2) // same
     {
         out->w = in->w;
         out->h = in->h;
         out->c = out_c;
         out->data = calloc(out->w * out->h * out->c, sizeof(float));
-        pad = conv_w / 2;
+        if (conv_w % 2 == 1)
+        {
+            pad_w = conv_w / 2;
+            pad_h = conv_h / 2;
+        }
         //debug("pad:%d", pad);
     }
     else if (type == 1) // valid
@@ -61,7 +66,7 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
     else
     {
         debug("Read conv2d type error!");
-        exit(0);
+        return;
     }
 
     float *weights = calloc(conv_w * conv_h * in_c, sizeof(float));
@@ -105,16 +110,18 @@ void conv2d_load_inference(FILE *file, in_out *in, in_out *out)
                 {
                     for (int y = 0; y < conv_h; y++)
                     {
-                        int in_y = h + y - pad;
-                        if (in_y < 0 || in_y >= out->h)
+                        int in_y = h + y - pad_h;
+                        //in_y = in_y > (in->h - 1) ? (in->h - 1) : in_y;
+                        if (in_y < 0 || in_y >= in->h)
                             continue;
                         for (int x = 0; x < conv_w; x++)
                         {
-                            int in_x = w + x - pad;
-                            if (in_x < 0 || in_x >= out->w)
+                            int in_x = w + x - pad_w;
+                            //in_x = in_x > (in->w - 1) ? (in->w - 1) : in_x;
+                            if (in_x < 0 || in_x >= in->w)
                                 continue;
-                            out->data[c_out * out->w * out->h + h * out->w + w] += 
-                                in->data[c_in * in->w * in->h + in_y * in->w + in_x] * 
+                            out->data[c_out * out->w * out->h + h * out->w + w] +=
+                                in->data[c_in * in->w * in->h + in_y * in->w + in_x] *
                                 weights[c_in * conv_w * conv_h + y * conv_w + x];
                         }
                     }
@@ -291,7 +298,9 @@ void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
                         {
                             int index_w = w * stride + x;
                             max =
-                                in->data[c_out * in->w * in->h + index_h * in->w + index_w] > max ? in->data[c_out * in->w * in->h + index_h * in->w + index_w] : max;
+                                in->data[c_out * in->w * in->h + index_h * in->w + index_w] > max
+                                    ? in->data[c_out * in->w * in->h + index_h * in->w + index_w]
+                                    : max;
                         }
                     }
                     out->data[c_out * out->w * out->h + h * out->w + w] = max;
@@ -307,8 +316,37 @@ void maxpooling_load_inference(FILE *file, in_out *in, in_out *out)
         out->c = in->c;
         out->data = calloc(out->w * out->h * out->c, sizeof(float));
         debug("out:%d x %d x %d", out->w, out->h, out->c);
+        for (int c_out = 0; c_out < out->c; c_out++)
+        {
+            for (int h = 0; h < out->h; h++)
+            {
+                for (int w = 0; w < out->w; w++)
+                {
+                    float max = -FLT_MAX;
+                    for (int y = 0; y < pool_h; y++)
+                    {
+                        int index_h = h * stride + y;
+                        index_h = index_h > (in->h - 1) ? (in->h - 1) : index_h;
+                        for (int x = 0; x < pool_w; x++)
+                        {
+                            int index_w = w * stride + x;
+                            index_w = index_w > (in->w - 1) ? (in->w - 1) : index_w;
+                            max =
+                                in->data[c_out * in->w * in->h + index_h * in->w + index_w] > max
+                                    ? in->data[c_out * in->w * in->h + index_h * in->w + index_w]
+                                    : max;
+                        }
+                    }
+                    out->data[c_out * out->w * out->h + h * out->w + w] = max;
+                }
+            }
+        }
     }
-    //FIXME for type same
+    else
+    {
+        debug("Maxpooling type error!");
+        return;
+    }
 
     //print_in_out(*out);
     //debug("%f", out->data[2*out->w*out->h + 1*out->w + 1]);
@@ -409,11 +447,11 @@ void uInference(char *model_name, char *filename)
     int resize_h = 105;
     // load image and normalize
     in_out im = load_image(filename, resize_w, resize_h, 1);
-    
+
     normalize_image_255(&im);
     //print_in_out(im);
 
-  /*  
+    /*  
     int resize_w = 16;
     int resize_h = 16;
     float mean = 122.81543917085412;
@@ -520,7 +558,7 @@ void uInference(char *model_name, char *filename)
             free_in_out(&im);
             exit(0);
         }
-        if(layer == 26)
+        if (layer == 33)
         {
             save_in_out(*in);
             debug("shape:w=%d,h=%d,c=%d", in->w, in->h, in->c);
@@ -528,6 +566,7 @@ void uInference(char *model_name, char *filename)
         }
         layer++;
     }
+    debug("Number of layers: %d", layer);
     fclose(file);
     // free
     free_in_out(in);
