@@ -1,5 +1,5 @@
 # What is uInference?
-uInference is a inference framework which could run Classification and Object Detection on a quite small micro-chip like STM32 etc.
+uInference is a inference framework which could run Classification and Object Detection on a extremely small micro-chip like STM32 etc.
 
 # Usage
 1. In folder `script/`, run `python img_save2binary.py` to convert the image to the .img file.

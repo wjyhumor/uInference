@@ -25,3 +25,4 @@ massif.out.*
 uInference.bin.dSYM/ 
 *.img
 *.txt
+**/tmp/*

@@ -4,8 +4,8 @@ import re
 import numpy as np
 from PIL import Image
 
-reload_train = True
-reload_test = True#False#
+#reload_train = True#False#
+#reload_test = True#False#
 
 resize_w = 16  # 28
 resize_h = 16  # 40
@@ -26,7 +26,7 @@ fashion_mnist = keras.datasets.fashion_mnist
 def rgb2gray(rgb):
     return np.dot(rgb[..., :3], [0.2989, 0.5870, 0.1140])
 
-def load_data_train(file_train):
+def load_data_train(file_train, reload_train):
     load_train_data_flag = 0
     # check if data already saved in .npy format
     if os.path.exists(save_path+os.path.basename(file_train)+"_image.npy"):
@@ -80,7 +80,7 @@ def load_data_train(file_train):
     return train_images, train_labels
 
 
-def load_data_test(file_test):
+def load_data_test(file_test, reload_test):
     load_test_data_flag = 0
     if os.path.exists(save_path+os.path.basename(file_test)+"_image.npy"):
         test_images = np.load(

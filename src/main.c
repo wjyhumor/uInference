@@ -30,7 +30,7 @@ int main()
     float msec = difference * 1000.0 / (float)CLOCKS_PER_SEC;
     debug("msec: %f ms", msec);
 
-    save_in_out(*res);
+    //save_in_out(*res);
 
     free_in_out(&im);
     free_in_out(res);

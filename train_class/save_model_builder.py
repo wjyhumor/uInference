@@ -17,13 +17,11 @@ import matplotlib.image as mpimg
 from PIL import Image
 import random
 
-#model_name = 'weights-50.hdf5'
-
-def save_model_builder(model_name):     
+def save_model_builder(model_name, save_name):     
     model = load_model(str(model_name))
     signature = tf.saved_model.signature_def_utils.predict_signature_def(
         inputs={'image': model.input}, outputs={'scores': model.output})       
-    builder = tf.saved_model.builder.SavedModelBuilder('saved_model')         
+    builder = tf.saved_model.builder.SavedModelBuilder(save_name)         
     builder.add_meta_graph_and_variables(                          
         sess=K.get_session(),                                          
         tags=[tf.saved_model.tag_constants.SERVING],          

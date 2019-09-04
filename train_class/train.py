@@ -1,29 +1,69 @@
-
+import save_model_builder
+import load_data
+import models
+import argparse
 import re
 import os
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
-
-import tensorflow as tf
-print(tf.__version__)
 import keras
-from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import ModelCheckpoint
-from keras.optimizers import *
 from keras.models import load_model
+from keras.optimizers import *
+from keras.callbacks import ModelCheckpoint
+from keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
+print("tensorflow version:" + tf.__version__)
 
-import models
-import load_data
-import save_model_builder
 
-def train(model_index, file_train, file_test, load_model_flag, load_model_name, batch_size, epochs):
-    train_images, train_labels = load_data.load_data_train(file_train)
-    test_images, test_labels = load_data.load_data_test(file_test)
-    train_images = train_images.reshape(-1, load_data.resize_w, load_data.resize_h, 1)
-    test_images = test_images.reshape(-1, load_data.resize_w, load_data.resize_h, 1)
-    print("Image shape:" + str(train_images.shape))
-    print("Label shape:" + str(train_labels.shape))
+argparser = argparse.ArgumentParser(description='Train OCR model')
+
+argparser.add_argument(
+    '-type',
+    type=int,
+    help='type of model to train, 1: for edge unit, 3: for cloud')
+
+argparser.add_argument(
+    '-pretrain',
+    type=int,
+    help='use pretrained model flag, 1: use pretrained model, 0: not use')
+
+argparser.add_argument(
+    '-pretrain_model',
+    help='path for pretrained model(option)')
+
+argparser.add_argument(
+    '-path_train',
+    help='path for the list of train data')
+
+argparser.add_argument(
+    '-path_test',
+    help='path for the list of test data')
+
+argparser.add_argument(
+    '-save_model',
+    help='name for model to save')
+
+argparser.add_argument(
+    '-save_builder',
+    help='name for model builder to save')
+
+
+def train(model_type, train_list,
+          test_list, pretrain_flag,
+          batch_size, epochs, save_model_name,
+          pretrained_model_name=None,
+          reload_train=True,
+          reload_test=True):
+    train_images, train_labels = load_data.load_data_train(
+        train_list, reload_train)
+    test_images, test_labels = load_data.load_data_test(test_list, reload_test)
+    train_images = train_images.reshape(-1,
+                                        load_data.resize_w, load_data.resize_h, 1)
+    test_images = test_images.reshape(-1,
+                                      load_data.resize_w, load_data.resize_h, 1)
+    #print("Image shape:" + str(train_images.shape))
+    #print("Label shape:" + str(train_labels.shape))
     # Augmentation---------------------------------------------
     datagen = ImageDataGenerator(
         featurewise_center=False,
@@ -41,50 +81,55 @@ def train(model_index, file_train, file_test, load_model_flag, load_model_name, 
     #test_gen = datagen.flow(test_images, test_labels, batch_size=batch_size)
 
     # build model------------------------------
-    if load_model_flag == False:
-        if model_index == 1:
+    if pretrain_flag == 0:
+        if model_type == 1:
             model = models.model_1()
-        elif model_index == 3:
+        elif model_type == 3:
             model = models.model_3()
     else:
-        model = load_model(str(load_model_name))
+        model = load_model(str(pretrained_model_name))
         print(model.summary())
     # set optimizer----------------------------------------
     optimizer = Adam(lr=1e-3)
     model.compile(optimizer=optimizer,
-                loss='sparse_categorical_crossentropy',  # if the labels are integers
-                metrics=['accuracy'])
+                  loss='sparse_categorical_crossentropy',  # if the labels are integers
+                  metrics=['accuracy'])
 
     # save checkpoint--------------------------------------
-    filepath = "weights-{epoch:02d}.hdf5"
+    #save_model_name = "./tmp/weights-{epoch:02d}.hdf5"
     checkpoint = ModelCheckpoint(
-        str(filepath), monitor='val_acc', verbose=1, save_best_only=False, period=10)
+        str(save_model_name), monitor='val_acc', verbose=1, save_best_only=False, period=10)
     # Tensorboard: tensorboard --logdir=./logs
+    """
     callbacks = [checkpoint,
-                keras.callbacks.TensorBoard(log_dir='./logs',
-                                            histogram_freq=0,
-                                            batch_size=batch_size,
-                                            write_graph=True,
-                                            write_grads=False,
-                                            write_images=False,
-                                            embeddings_freq=0,
-                                            embeddings_layer_names=None,
-                                            embeddings_metadata=None,
-                                            embeddings_data=None, 
-                                            update_freq='epoch')]
+                 keras.callbacks.TensorBoard(log_dir='./logs',
+                                             histogram_freq=0,
+                                             batch_size=batch_size,
+                                             write_graph=True,
+                                             write_grads=False,
+                                             write_images=False,
+                                             embeddings_freq=0,
+                                             embeddings_layer_names=None,
+                                             embeddings_metadata=None,
+                                             embeddings_data=None,
+                                             update_freq='epoch')]
+    """
+    callbacks = [checkpoint]
     # train-----------------------------------------------
     # history = model.fit(train_images, train_labels, validation_split=0.33,
     #                    batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[checkpoint])
     history = model.fit_generator(train_gen,
-                                steps_per_epoch=len(train_images) // batch_size,
-                                validation_data=(test_images, test_labels),
-                                validation_steps=len(test_images) // batch_size,
-                                epochs=epochs, verbose=1, callbacks=callbacks)
+                                  steps_per_epoch=len(
+                                      train_images) // batch_size,
+                                  validation_data=(test_images, test_labels),
+                                  validation_steps=len(
+                                      test_images) // batch_size,
+                                  epochs=epochs, verbose=1, callbacks=callbacks)
 
     # test-----------------------------------------------
     test_loss, test_acc = model.evaluate(test_images, test_labels)
     print("Test accuracy:"+str(test_acc))
-
+    """
     # Plot training & validation loss values
     plt.plot(history.history['acc'])
     plt.plot(history.history['val_acc'])
@@ -93,26 +138,42 @@ def train(model_index, file_train, file_test, load_model_flag, load_model_name, 
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
+    """
 
-def load_save_model(load_model_name):
-    model = load_model(str(load_model_name))
-    print(model.summary())
-    model_json = model.to_json()
-    with open("save_model.json", "w") as json_file:
-        json_file.write(model_json)
-    model.save_weights("save_weights.h5")
-    print("Saved model to disk")
 
-if __name__ == '__main__':
-    model_index = 3 # 1: model for edge; 3: model for cloud 
-    load_model_flag = False # if trained from a weight, then True; else, false.
+def _main_(args):
+    model_type = args.type
+    pretrain_flag = args.pretrain
+    train_list = args.path_train
+    test_list = args.path_test
+    save_model_name = args.save_model
     batch_size = 16
     epochs = 50
-    file_train = '/home/neusoft/amy/uInference/data/water_elec_0516_0625.digits_front.train'
-    file_test = '/home/neusoft/amy/uInference/data/water_elec_0516_0625.digits_front.test'
-    load_model_name = '/home/neusoft/amy/uInference/weights-model1.hdf5'
-    train(model_index, file_train, file_test, load_model_flag, load_model_name, batch_size, epochs)
-    
-    save_model_name = '/home/neusoft/amy/uInference/weights-3-front.hdf5'
-    save_model_builder.save_model_builder(save_model_name)
 
+    print("===========Parameters==============")
+    print("model_type: " + str(model_type))
+    print("pretrain_flag: " + str(pretrain_flag))
+    print("train_list: " + train_list)
+    print("test_list: " + test_list)
+    print("save_model_name: " + save_model_name)
+    print("===================================")
+
+    if pretrain_flag:
+        pretrained_model_name = args.pretrain_model
+        train(model_type, train_list, test_list, pretrain_flag,
+              batch_size, epochs, save_model_name, pretrained_model_name,
+              reload_train=False, reload_test=False)
+    else:
+        train(model_type, train_list, test_list, pretrain_flag,
+              batch_size, epochs, save_model_name,
+              reload_train=False, reload_test=False)
+
+    if model_type == 3:
+        save_model_builder_name = args.save_builder
+        save_model_builder.save_model_builder(
+            save_model_name, save_model_builder_name)
+
+
+if __name__ == '__main__':
+    args = argparser.parse_args()
+    _main_(args)
