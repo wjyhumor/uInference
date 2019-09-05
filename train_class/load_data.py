@@ -48,8 +48,7 @@ def load_data_train(file_train, reload_train):
         i = 0
         while 1:
             i += 1
-            for k in range(1):
-                line = f.readline()
+            line = f.readline()
             if not line:
                 break
             if re.search('/\d/', line) == None:
@@ -102,8 +101,7 @@ def load_data_test(file_test, reload_test):
         i = 0
         while 1:
             i += 1
-            for k in range(1):
-                line = f.readline()
+            line = f.readline()
             if not line:
                 break
             if re.search('/\d/', line) == None:

@@ -26,3 +26,5 @@ uInference.bin.dSYM/
 *.img
 *.txt
 **/tmp/*
+**/.keras/*
+**/stm32ai_ws/*
