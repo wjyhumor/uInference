@@ -11,6 +11,7 @@ from keras.models import load_model
 
 import models
 import load_data
+from list_oper import WriteList
 
 class_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -23,32 +24,6 @@ argparser.add_argument(
 argparser.add_argument(
     '-model',
     help='model to test')
-
-def WriteList(input, output):
-    subprocess.call("rm -rf " + output, shell=True)
-    f_out = open(output, 'w')
-
-    if os.path.isdir(input):  
-        g = os.walk(input)
-        for path, dir_list, file_list in g:
-            for file_name in file_list:
-                if file_name != '.DS_Store':
-                    f_out.write(os.path.join(path, file_name))
-                    f_out.write('\n')        
-    elif os.path.isfile(input):  
-        f_in = open(input, 'r')
-        while 1:
-            line = f_in.readline().strip()
-            if not line:
-                break
-            g = os.walk(line)
-            for path, dir_list, file_list in g:
-                for file_name in file_list:
-                    if file_name != '.DS_Store':
-                        f_out.write(os.path.join(path, file_name))
-                        f_out.write('\n')  
-        f_in.close()
-    f_out.close()
 
 
 def test(file_test, load_model_name, reload_test):

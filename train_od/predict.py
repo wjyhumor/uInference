@@ -50,7 +50,7 @@ def _main_(args):
     ###############################
     #   Load trained weights
     ###############################    
-    print config['train']['saved_weights_name']
+    print(config['train']['saved_weights_name'])
     yolo.load_weights(config['train']['saved_weights_name'])
 
     ###############################

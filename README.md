@@ -128,3 +128,6 @@ ms_print massif.out.
 Batch_size will not affect accuracy too much, but higher batch_size will need more memory when training.
 
 * Iterations(Steps): the number of batches needed to complete one epoch.
+
+* Keras data format: (samples, rows, cols, channels).  
+

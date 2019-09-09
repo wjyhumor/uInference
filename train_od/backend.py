@@ -397,7 +397,7 @@ class MobileNetFeature(BaseFeatureExtractor):
     def __init__(self, input_width, input_height, input_channel):
         input_image = Input(shape=(input_width, input_height, input_channel))
 
-        mobilenet = MobileNet(input_shape=(input_width, input_height, input_channel), include_top=False)
+        mobilenet = MobileNet(input_shape=(input_width, input_height, input_channel), include_top=False, weights=None)
         #mobilenet = MobileNet(input_shape=(224,224,3), include_top=False)
         #mobilenet.load_weights(MOBILENET_BACKEND_PATH)
 

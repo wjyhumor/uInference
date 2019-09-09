@@ -1,7 +1,10 @@
 python3 retrain.py \
  -type 3 \
  -pretrain 0 \
- -original_images_list /home/neusoft/amy/uInference/data/water_elec_0516_0625.digits.all \
+ -batch_size 16 \
+ -epochs 50 \
+ -reload_train 1 \
+ -reload_test 1 \
+ -origin_images ./tmp/images_base_all.list \
  -new_images   /home/neusoft/amy/uInference/data/new_images.list \
- -save_model   ./tmp/retrain_weights_cloud.hdf5 \
- -save_builder ./tmp/model_cloud
+ -save_model   ./tmp/weights_retrain_cloud.hdf5 

@@ -14,7 +14,11 @@ from keras.callbacks import ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
 print("tensorflow version:" + tf.__version__)
-
+from list_oper import WriteList
+from list_oper import ShuffleAllList
+from list_oper import SplitList
+from test import test
+from save_model_builder import save_model_builder
 
 argparser = argparse.ArgumentParser(description='Train OCR model')
 
@@ -22,6 +26,16 @@ argparser.add_argument(
     '-type',
     type=int,
     help='type of model to train, 1: for edge unit, 3: for cloud')
+
+argparser.add_argument(
+    '-batch_size',
+    type=int,
+    help='batch size to train')
+
+argparser.add_argument(
+    '-epochs',
+    type=int,
+    help='epochs to train')
 
 argparser.add_argument(
     '-pretrain',
@@ -33,25 +47,32 @@ argparser.add_argument(
     help='path for pretrained model(option)')
 
 argparser.add_argument(
-    '-path_train',
-    help='path for the list of train data')
+    '-reload_train',
+    type=int,
+    help='flag for reload training data or not, 1: reload, 0: do not reload')
 
 argparser.add_argument(
-    '-path_test',
-    help='path for the list of test data')
+    '-reload_test',
+    type=int,
+    help='flag for reload test data or not, 1: reload, 0: do not reload')
+
+argparser.add_argument(
+    '-data_path',
+    help='path for the list of data')
 
 argparser.add_argument(
     '-save_model',
     help='name for model to save')
 
-argparser.add_argument(
-    '-save_builder',
-    help='name for model builder to save')
 
 
-def train(model_type, train_list,
-          test_list, pretrain_flag,
-          batch_size, epochs, save_model_name,
+def train(model_type=1, 
+          train_list="",
+          test_list="", 
+          pretrain_flag=0,
+          batch_size=16, 
+          epochs=50, 
+          save_model_name="",
           pretrained_model_name=None,
           reload_train=True,
           reload_test=True):
@@ -98,7 +119,7 @@ def train(model_type, train_list,
     # save checkpoint--------------------------------------
     #save_model_name = "./tmp/weights-{epoch:02d}.hdf5"
     checkpoint = ModelCheckpoint(
-        str(save_model_name), monitor='val_acc', verbose=1, save_best_only=False, period=10)
+        str(save_model_name), monitor='val_acc', verbose=1, save_best_only=True, period=epochs)
     # Tensorboard: tensorboard --logdir=./logs
     """
     callbacks = [checkpoint,
@@ -144,34 +165,49 @@ def train(model_type, train_list,
 def _main_(args):
     model_type = args.type
     pretrain_flag = args.pretrain
-    train_list = args.path_train
-    test_list = args.path_test
+    data_path = args.data_path
     save_model_name = args.save_model
-    batch_size = 16
-    epochs = 50
+    batch_size = args.batch_size
+    epochs = args.epochs
 
     print("===========Parameters==============")
     print("model_type: " + str(model_type))
     print("pretrain_flag: " + str(pretrain_flag))
-    print("train_list: " + train_list)
-    print("test_list: " + test_list)
-    print("save_model_name: " + save_model_name)
+    print("data_path: " + data_path)
+    print("save_model_name: " + str(save_model_name))
+    print("batch_size: " + str(batch_size))
+    print("epochs: " + str(epochs))
     print("===================================")
 
+    # pre-process of data
+    save_path = "./tmp/"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    all_list = "./tmp/images_base_all.list"
+    train_list = "./tmp/images_base_train.list"
+    test_list = "./tmp/images_base_test.list"
+    WriteList(data_path, all_list)
+    images_number = ShuffleAllList(all_list)
+    print("Images_number:" + str(images_number))
+    SplitList(all_list, train_list, test_list, 0.8)
+    
+    # train 
     if pretrain_flag:
         pretrained_model_name = args.pretrain_model
         train(model_type, train_list, test_list, pretrain_flag,
               batch_size, epochs, save_model_name, pretrained_model_name,
-              reload_train=False, reload_test=False)
+              reload_train=args.reload_train, reload_test=args.reload_test)
     else:
         train(model_type, train_list, test_list, pretrain_flag,
               batch_size, epochs, save_model_name,
-              reload_train=False, reload_test=False)
-
+              reload_train=args.reload_train, reload_test=args.reload_test)
+    
+    # save model builder
     if model_type == 3:
-        save_model_builder_name = args.save_builder
-        save_model_builder.save_model_builder(
-            save_model_name, save_model_builder_name)
+        save_model_builder(save_model_name, os.path.splitext(save_model_name)[0])
+    
+    # test
+    # test(test_list, save_model_name, reload_test=args.reload_test)
 
 
 if __name__ == '__main__':

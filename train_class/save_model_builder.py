@@ -31,7 +31,7 @@ argparser.add_argument(
 
 
 def save_model_builder(model_name, save_name):     
-    if os.path.exists(save_name):
+    if os.path.exists(save_name) & os.path.isdir(save_name):
         subprocess.call("rm -rf " + save_name, shell=True)
     model = load_model(str(model_name))
     signature = tf.saved_model.signature_def_utils.predict_signature_def(

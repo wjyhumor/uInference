@@ -9,7 +9,10 @@ from PIL import Image, ImageEnhance
 
 import models
 import load_data
-import save_model_builder
+from save_model_builder import save_model_builder
+from list_oper import WriteList
+from list_oper import ShuffleAllList
+from list_oper import merge_new_old
 from train import train
 from test import test
 
@@ -21,6 +24,16 @@ argparser.add_argument(
     help='type of model to retrain, 1: for edge unit, 3: for cloud')
 
 argparser.add_argument(
+    '-batch_size',
+    type=int,
+    help='batch size to train')
+
+argparser.add_argument(
+    '-epochs',
+    type=int,
+    help='epochs to train')
+
+argparser.add_argument(
     '-pretrain',
     type=int,
     help='use pretrained model flag, 1: use pretrained model, 0: not use')
@@ -30,7 +43,17 @@ argparser.add_argument(
     help='path for pretrained model(option)')
 
 argparser.add_argument(
-    '-original_images_list',
+    '-reload_train',
+    type=int,
+    help='flag for reload training data or not, 1: reload, 0: do not reload')
+
+argparser.add_argument(
+    '-reload_test',
+    type=int,
+    help='flag for reload test data or not, 1: reload, 0: do not reload')
+
+argparser.add_argument(
+    '-origin_images',
     help='path for the list of original image data')
 
 argparser.add_argument(
@@ -44,60 +67,6 @@ argparser.add_argument(
 argparser.add_argument(
     '-save_model',
     help='name for model to save')
-
-argparser.add_argument(
-    '-save_builder',
-    help='name for model builder to save')
-
-
-def WriteList(input, output):
-    subprocess.call("rm -rf " + output, shell=True)
-    f_out = open(output, 'w')
-
-    if os.path.isdir(input):  
-        g = os.walk(input)
-        for path, dir_list, file_list in g:
-            for file_name in file_list:
-                if file_name != '.DS_Store':
-                    f_out.write(os.path.join(path, file_name))
-                    f_out.write('\n')        
-    elif os.path.isfile(input):  
-        f_in = open(input, 'r')
-        while 1:
-            line = f_in.readline().strip()
-            if not line:
-                break
-            g = os.walk(line)
-            for path, dir_list, file_list in g:
-                for file_name in file_list:
-                    if file_name != '.DS_Store':
-                        f_out.write(os.path.join(path, file_name))
-                        f_out.write('\n')  
-        f_in.close()
-    f_out.close()
-
-
-
-def ShuffleAllList(datalist):
-    vaild_list = []
-    data_number = 0
-    f = open(datalist, 'r')
-    while 1:
-        line = f.readline()
-        if not line:
-            break
-        vaild_list.append(line)
-        data_number += 1
-    f.close()
-    random.shuffle(vaild_list)
-    subprocess.call("rm -rf " + datalist, shell=True)
-    f = open(datalist, 'a')
-    for item in vaild_list:
-        f.write(item)
-    f.close()
-    return data_number
-
-# Augmentation
 
 
 def Augmentation(datalist, save_name):
@@ -167,63 +136,30 @@ def Augmentation(datalist, save_name):
 
     WriteList(aug_path, save_name)
 
-# new_data_number:0-load all the data, other-load 9xdata
-
-
-def merge_new_old(new_data_number, new_list, original_list, merged_list):
-    original_list_number = new_data_number * 9
-    datalist = []
-    # read new data
-    f = open(new_list, 'r')
-    while 1:
-        line = f.readline()
-        if not line:
-            break
-        datalist.append(line)
-    f.close()
-    # read original data
-    f = open(original_list, 'r')
-    if original_list_number == 0:
-        while 1:
-            line = f.readline()
-            if not line:
-                break
-            datalist.append(line)
-    else:
-        for i in range(original_list_number):
-            line = f.readline()
-            if not line:
-                break
-            datalist.append(line)
-    f.close()
-    # shuffle
-    random.shuffle(datalist)
-    # save to merged_list
-    subprocess.call("rm -rf " + merged_list, shell=True)
-    f = open(merged_list, 'a')
-    for item in datalist:
-        f.write(item)
-    f.close()
-
 
 def _main_(args):
     model_type = args.type
     pretrain_flag = args.pretrain
-    original_images_list = args.original_images_list
+    origin_images = args.origin_images
     new_images = args.new_images
     save_model_name = args.save_model
-    batch_size = 16
-    epochs = 50
+    batch_size = args.batch_size
+    epochs = args.epochs
     
     print("===========Parameters==============")
     print("model_type: " + str(model_type))
     print("pretrain_flag: " + str(pretrain_flag)) 
-    print("original_images_list: " + original_images_list)
+    print("origin_images: " + origin_images)
     print("new_images: " + new_images)
     print("save_model_name: " + save_model_name)
+    print("batch_size: " + str(batch_size))
+    print("epochs: " + str(epochs))
     print("===================================")
 
     # retrain data
+    save_path = "./tmp/"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     new_images_list = "./tmp/new_images.list"
     train_list = './tmp/retrain.list'
     WriteList(new_images, new_images_list)
@@ -231,9 +167,9 @@ def _main_(args):
     print("new_images_number:" + str(new_images_number))
     #Augmentation(new_images_list)
     if model_type == 1:
-        merge_new_old(new_images_number, new_images_list, original_images_list, train_list)
+        merge_new_old(new_images_number, new_images_list, origin_images, train_list)
     elif model_type == 3:
-        merge_new_old(0, new_images_list, original_images_list, train_list)
+        merge_new_old(0, new_images_list, origin_images, train_list)
     
     # test data
     if args.test is not None:
@@ -247,22 +183,21 @@ def _main_(args):
         pretrained_model_name = args.pretrain_model
         train(model_type, train_list, test_list, pretrain_flag, 
             batch_size, epochs, save_model_name, pretrained_model_name,
-            reload_train=True, reload_test=False)
+            reload_train=args.reload_train, reload_test=args.reload_test)
     else:
         train(model_type, train_list, test_list, pretrain_flag, 
             batch_size, epochs, save_model_name,
-            reload_train=True, reload_test=False)
+            reload_train=args.reload_train, reload_test=args.reload_test)
     
     # save model builder 
     if model_type == 3:
-        save_model_builder_name = args.save_builder
-        save_model_builder.save_model_builder(
-            save_model_name, save_model_builder_name)
+        save_model_builder(save_model_name, os.path.splitext(save_model_name)[0])
     
     # test
-    test(test_list, save_model_name, reload_test=True)
+    test(test_list, save_model_name, reload_test=args.reload_test)
 
 
 if __name__ == '__main__':
     args = argparser.parse_args()
     _main_(args)
+
