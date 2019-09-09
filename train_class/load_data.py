@@ -37,7 +37,7 @@ def load_data_train(file_train, reload_train):
         train_labels = np.load(
             save_path+os.path.basename(file_train)+"_label.npy")
         load_train_data_flag = 1
-    # reload by force
+    # reload by force if true
     if reload_train:
         load_train_data_flag = 0
 

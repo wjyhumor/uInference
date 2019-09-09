@@ -38,6 +38,10 @@ argparser.add_argument(
     help='path for the new image data')
 
 argparser.add_argument(
+    '-test',
+    help='path for the test image data')
+
+argparser.add_argument(
     '-save_model',
     help='name for model to save')
 
@@ -219,9 +223,9 @@ def _main_(args):
     print("save_model_name: " + save_model_name)
     print("===================================")
 
+    # retrain data
     new_images_list = "./tmp/new_images.list"
     train_list = './tmp/retrain.list'
-    test_list = './tmp/retrain.list'
     WriteList(new_images, new_images_list)
     new_images_number = ShuffleAllList(new_images_list)
     print("new_images_number:" + str(new_images_number))
@@ -231,6 +235,13 @@ def _main_(args):
     elif model_type == 3:
         merge_new_old(0, new_images_list, original_images_list, train_list)
     
+    # test data
+    if args.test is not None:
+        test_list = "./tmp/test.list"
+        WriteList(arg.test, test_list)
+    else:
+        test_list = new_images_list
+
     # train
     if pretrain_flag:
         pretrained_model_name = args.pretrain_model
@@ -240,7 +251,7 @@ def _main_(args):
     else:
         train(model_type, train_list, test_list, pretrain_flag, 
             batch_size, epochs, save_model_name,
-            reload_train=False, reload_test=False)
+            reload_train=True, reload_test=False)
     
     # save model builder 
     if model_type == 3:
@@ -249,8 +260,7 @@ def _main_(args):
             save_model_name, save_model_builder_name)
     
     # test
-    #retrained_model_name = "weights-50.hdf5"
-    #test.test(new_images_list, retrained_model_name)
+    test(test_list, save_model_name, reload_test=True)
 
 
 if __name__ == '__main__':

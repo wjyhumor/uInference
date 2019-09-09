@@ -1,6 +1,6 @@
 {
     "model" : {
-        "backend":              "Tiny Yolo_5",
+        "backend":              "MobileNet",
         "input_width":          320,
         "input_height":         105, 
         "input_channel":        1,
@@ -25,8 +25,8 @@
         "coord_scale":          1.0,
         "class_scale":          1.0,
 
-        "saved_config_name":    "../models_od/tiny_yolo_ocr_6.json",
-        "saved_weights_name":   "../models_od/tiny_yolo_ocr_6.h5",
+        "saved_config_name":    "../models_od/mobilenet.json",
+        "saved_weights_name":   "../models_od/mobilenet.h5",
         "debug":                true
     },
 

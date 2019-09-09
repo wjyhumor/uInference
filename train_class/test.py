@@ -1,7 +1,8 @@
-
+import argparse
 import os
 import random
 import numpy as np
+import subprocess
 import matplotlib.pyplot as plt
 import statistics
 
@@ -13,31 +14,68 @@ import load_data
 
 class_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-def test(file_test, load_model_name):
+argparser = argparse.ArgumentParser(description='Test OCR model')
+
+argparser.add_argument(
+    '-test',
+    help='Folder or list of images data for test')
+
+argparser.add_argument(
+    '-model',
+    help='model to test')
+
+def WriteList(input, output):
+    subprocess.call("rm -rf " + output, shell=True)
+    f_out = open(output, 'w')
+
+    if os.path.isdir(input):  
+        g = os.walk(input)
+        for path, dir_list, file_list in g:
+            for file_name in file_list:
+                if file_name != '.DS_Store':
+                    f_out.write(os.path.join(path, file_name))
+                    f_out.write('\n')        
+    elif os.path.isfile(input):  
+        f_in = open(input, 'r')
+        while 1:
+            line = f_in.readline().strip()
+            if not line:
+                break
+            g = os.walk(line)
+            for path, dir_list, file_list in g:
+                for file_name in file_list:
+                    if file_name != '.DS_Store':
+                        f_out.write(os.path.join(path, file_name))
+                        f_out.write('\n')  
+        f_in.close()
+    f_out.close()
+
+
+def test(file_test, load_model_name, reload_test):
     # load data
-    test_images, test_labels = load_data.load_data_test(file_test)
+    test_images, test_labels = load_data.load_data_test(file_test, reload_test)
     test_images = test_images.reshape(-1,
                                       load_data.resize_w, load_data.resize_h, 1)
 
     # load model and predict
     model = load_model(str(load_model_name))
     predictions = model.predict(test_images)
-
+    """
     max_predictions = []
     for pre in predictions:
         max_predictions.append(float(np.max(pre)))
-    #print(max_predictions)
+    print(max_predictions)
     print(statistics.mean(max_predictions))
     plt.hist(max_predictions, bins=10)
     plt.show()
-
+    """
     # evaluate
     test_loss, test_acc = model.evaluate(test_images, test_labels)
     print("Test accuracy:"+str(test_acc))
 
     # plot
-    test_images = test_images.reshape(-1,
-                                      load_data.resize_h, load_data.resize_w)
+    # test_images = test_images.reshape(-1,
+    #                                  load_data.resize_h, load_data.resize_w)
     #plot_error(test_images, test_labels, predictions)
     #plot_result(test_images, test_labels, predictions)
 
@@ -93,7 +131,8 @@ def plot_error(test_images, test_labels, predictions):
             plt.figure(figsize=(2 * 2 * num_cols, 2 * num_rows))
             for i in range(num_images):
                 plt.subplot(num_rows, 2 * num_cols, 2 * i + 1)
-                plot_wrong_image(index, wrong_predict, true_labels, wrong_images, wrong_index)
+                plot_wrong_image(index, wrong_predict,
+                                 true_labels, wrong_images, wrong_index)
                 plt.subplot(num_rows, 2 * num_cols, 2 * i + 2)
                 plot_value(index, wrong_predict, true_labels)
                 index = index + 1
@@ -102,6 +141,7 @@ def plot_error(test_images, test_labels, predictions):
             plt.show()
             if index >= len(true_labels):
                 break
+
 
 def plot_image(i, predictions, true_label, img):
     pred, true_label, img = predictions[i], true_label[i], img[i]
@@ -117,8 +157,9 @@ def plot_image(i, predictions, true_label, img):
     plt.xlabel("{}: {} {:2.0f}% ({})".format(i,
                                              class_names[predicted_label],
                                              100 * np.max(pred),
-                                             class_names[true_label]), 
-                                             color=color)
+                                             class_names[true_label]),
+               color=color)
+
 
 def plot_wrong_image(i, predictions, true_label, img, wrong_index):
     pred, true_label, img = predictions[i], true_label[i], img[i]
@@ -134,8 +175,9 @@ def plot_wrong_image(i, predictions, true_label, img, wrong_index):
     plt.xlabel("{}: {} {:2.0f}% ({})".format(wrong_index[i],
                                              class_names[predicted_label],
                                              100 * np.max(pred),
-                                             class_names[true_label]), 
-                                             color=color)
+                                             class_names[true_label]),
+               color=color)
+
 
 def plot_value(i, predictions, true_label):
     pred, true_label = predictions[i], true_label[i]
@@ -148,8 +190,12 @@ def plot_value(i, predictions, true_label):
     thisplot[predicted_label].set_color('red')
     thisplot[true_label].set_color('blue')
 
-if __name__ == '__main__':
-    file_test = '/home/neusoft/amy/AT-201/data/water_elec_0516_0625.digits_end.test'#beilu_0820_blank.all'#
-    load_model_name = '/home/neusoft/amy/AT-201/cubeai_train/weights-3-end.hdf5'
 
-    test(file_test, load_model_name)
+if __name__ == '__main__':
+    args = argparser.parse_args()
+    load_model_name = args.model
+
+    test_list = "./tmp/test.list"
+    WriteList(args.test, test_list)
+
+    test(test_list, load_model_name, reload_test=True)

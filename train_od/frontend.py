@@ -51,16 +51,16 @@ class YOLO(object):
 
         if backend == 'Inception3':
             self.feature_extractor = Inception3Feature(
-                self.input_width, self.input_height)
+                self.input_width, self.input_height, self.input_channel)
         elif backend == 'SqueezeNet':
             self.feature_extractor = SqueezeNetFeature(
-                self.input_width, self.input_height)
+                self.input_width, self.input_height, self.input_channel)
         elif backend == 'MobileNet':
             self.feature_extractor = MobileNetFeature(
-                self.input_width, self.input_height)
+                self.input_width, self.input_height, self.input_channel)
         elif backend == 'Full Yolo':
             self.feature_extractor = FullYoloFeature(
-                self.input_width, self.input_height)
+                self.input_width, self.input_height, self.input_channel)
         elif backend == 'Tiny Yolo':
             self.feature_extractor = TinyYoloFeature(
                 self.input_width, self.input_height, self.input_channel)

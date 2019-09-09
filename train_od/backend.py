@@ -38,8 +38,8 @@ class BaseFeatureExtractor(object):
 
 class FullYoloFeature(BaseFeatureExtractor):
     """docstring for ClassName"""
-    def __init__(self, input_width, input_height):
-        input_image = Input(shape=(input_width, input_height, 3))
+    def __init__(self, input_width, input_height, input_channel):
+        input_image = Input(shape=(input_width, input_height, input_channel))
 
         # the function to implement the orgnization layer (thanks to github.com/allanzelener/YAD2K)
         def space_to_depth_x2(x):
@@ -167,7 +167,7 @@ class FullYoloFeature(BaseFeatureExtractor):
         x = LeakyReLU(alpha=0.1)(x)
 
         self.feature_extractor = Model(input_image, x)  
-        self.feature_extractor.load_weights(FULL_YOLO_BACKEND_PATH)
+        #self.feature_extractor.load_weights(FULL_YOLO_BACKEND_PATH)
 
     def normalize(self, image):
         return image / 255.
@@ -399,11 +399,12 @@ class MobileNetFeature(BaseFeatureExtractor):
 
         mobilenet = MobileNet(input_shape=(input_width, input_height, input_channel), include_top=False)
         #mobilenet = MobileNet(input_shape=(224,224,3), include_top=False)
-        mobilenet.load_weights(MOBILENET_BACKEND_PATH)
+        #mobilenet.load_weights(MOBILENET_BACKEND_PATH)
 
         x = mobilenet(input_image)
 
         self.feature_extractor = Model(input_image, x)  
+        self.feature_extractor.summary()
 
     def normalize(self, image):
         image = image / 255.
@@ -414,7 +415,7 @@ class MobileNetFeature(BaseFeatureExtractor):
 
 class SqueezeNetFeature(BaseFeatureExtractor):
     """docstring for ClassName"""
-    def __init__(self, input_width, input_height):
+    def __init__(self, input_width, input_height, input_channel):
 
         # define some auxiliary variables and the fire module
         sq1x1  = "squeeze1x1"
@@ -439,7 +440,7 @@ class SqueezeNetFeature(BaseFeatureExtractor):
             return x
 
         # define the model of SqueezeNet
-        input_image = Input(shape=(input_width, input_height, 3))
+        input_image = Input(shape=(input_width, input_height, input_channel))
 
         x = Conv2D(64, (3, 3), strides=(2, 2), padding='valid', name='conv1')(input_image)
         x = Activation('relu', name='relu_conv1')(x)
@@ -473,10 +474,10 @@ class SqueezeNetFeature(BaseFeatureExtractor):
 
 class Inception3Feature(BaseFeatureExtractor):
     """docstring for ClassName"""
-    def __init__(self, input_width, input_height):
-        input_image = Input(shape=(input_width, input_height, 3))
+    def __init__(self, input_width, input_height, input_channel):
+        input_image = Input(shape=(input_width, input_height, input_channel))
 
-        inception = InceptionV3(input_shape=(input_width,input_height,3), include_top=False)
+        inception = InceptionV3(input_shape=(input_width,input_height, input_channel), include_top=False)
         inception.load_weights(INCEPTION3_BACKEND_PATH)
 
         x = inception(input_image)
@@ -492,8 +493,8 @@ class Inception3Feature(BaseFeatureExtractor):
 
 class VGG16Feature(BaseFeatureExtractor):
     """docstring for ClassName"""
-    def __init__(self, input_width, input_height):
-        vgg16 = VGG16(input_shape=(input_width, input_height, 3), include_top=False)
+    def __init__(self, input_width, input_height, input_channel):
+        vgg16 = VGG16(input_shape=(input_width, input_height, input_channel), include_top=False)
         #vgg16.load_weights(VGG16_BACKEND_PATH)
 
         self.feature_extractor = vgg16
@@ -510,8 +511,8 @@ class VGG16Feature(BaseFeatureExtractor):
 
 class ResNet50Feature(BaseFeatureExtractor):
     """docstring for ClassName"""
-    def __init__(self, input_width, input_height):
-        resnet50 = ResNet50(input_shape=(input_width, input_height, 3), include_top=False)
+    def __init__(self, input_width, input_height, input_channel):
+        resnet50 = ResNet50(input_shape=(input_width, input_height, input_channel), include_top=False)
         resnet50.layers.pop() # remove the average pooling layer
         #resnet50.load_weights(RESNET50_BACKEND_PATH)
 
@@ -529,8 +530,8 @@ class ResNet50Feature(BaseFeatureExtractor):
 
 class MyYoloFeature(BaseFeatureExtractor):
     """docstring for ClassName"""
-    def __init__(self, input_width, input_height):
-        input_image = Input(shape=(input_width, input_height, 3))
+    def __init__(self, input_width, input_height, input_channel):
+        input_image = Input(shape=(input_width, input_height, input_channel))
 
         # Layer 1
         x = Conv2D(16, (3,3), strides=(2,2), padding='same', name='conv_1', use_bias=False)(input_image)

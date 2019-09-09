@@ -44,7 +44,7 @@ Copy the generated anchors printed on the terminal to the `anchors` setting in `
 `python train.py -c config.json`
 
 3. Perform detection using trained weights on an image by running
-`python predict.py -c config.json -i /path/to/image/or/video`  
+`python predict.py -c config.json -i /path_to_image`  
 example:  
 `python predict.py -c config.json -i ../ex_od.jpg`  
 

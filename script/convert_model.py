@@ -99,8 +99,7 @@ def save_weights(save_type, json_name="save_model.json", weights="save_model.h5"
 
             elif l['class_name'] == 'Activation':
                 if save_type == 'txt':
-                    for i in range(0, len(gamma)):
-                        fout.write(l['config']['activation'] + '\n')
+                    fout.write(l['config']['activation'] + '\n')
                 elif save_type == 'binary':
                     fout.write(struct.pack('>B', activation_dic[l['config']['activation']]))
 
@@ -237,7 +236,7 @@ def save_weights(save_type, json_name="save_model.json", weights="save_model.h5"
 
 if __name__ == '__main__':
     model_type = 0  # config and weights in one single file
-    """
+    
     if model_type == 1:
         load_model_name = '../models_class/save_model.hdf5'
     model_name = '../models_class/save_model.json'
@@ -251,7 +250,7 @@ if __name__ == '__main__':
     weights_name = '../models_od/tiny_yolo_ocr_6.h5'
     save_name_txt = '../models_od/tiny_yolo_ocr_6.txt'
     save_name_binary = '../models_od/tiny_yolo_ocr_6.dat'
-    
+    """
     if model_type == 1:
         load_save_model(load_model_name, model_name, weights_name)
     save_weights('txt', json_name=model_name, weights=weights_name, output=save_name_txt)
