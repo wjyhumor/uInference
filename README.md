@@ -57,6 +57,7 @@ tiny_yolo_ocr_3.h5: TinyYoloFeature_3, input_size=320; Model size=1383484
 tiny_yolo_ocr_4.h5: TinyYoloFeature_4, input_size=320; Model size=891676  
 tiny_yolo_ocr_5.h5: TinyYoloFeature_4, input_width=320, input_height=105; Model size=891676  
 tiny_yolo_ocr_6.h5: TinyYoloFeature_5, input_width=320, input_height=105; Model size=635004  
+tiny_yolo_ocr_7.h5: TinyYoloFeature_5, input_width=320, input_height=105; Model size=635004, the same as *_6, but with pure structure.  
 
 ## DNN model example for object detection
 Layer (type)                 |Output Shape              |Param #   

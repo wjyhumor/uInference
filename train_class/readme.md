@@ -3,9 +3,18 @@ data_base/ : image data for training to have the first model.
 data_new/ : new comming image data for retrain.  
 script/ : python code and bash script for retrain.  
   
+data_base/images_base_all.list: the list of images for train the base model.  
 data_new/new_images.list: a list of new images for retrain of cloud model.  
+script/run_train.sh: script to train base model.  
 script/run_retrain_edge.sh: script to retrain edge model.  
 script/run_retrain_cloud.sh: script to retrain cloud model.  
+
+# Train the base model
+* Put labeled image data into `data_base/`.  
+* Add the path of the labeled image data to `data_base/images_base_all.list`.  
+* Modify script `script/run_train.sh` according to your requirement.  
+* Run `sh run_train.sh` in folder `script/`.
+
 
 # Retrain for the edge units
 Run `sh run_retrain_edge.sh` in folder `script/`

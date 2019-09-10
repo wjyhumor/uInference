@@ -103,6 +103,13 @@ def save_weights(save_type, json_name="save_model.json", weights="save_model.h5"
                 elif save_type == 'binary':
                     fout.write(struct.pack('>B', activation_dic[l['config']['activation']]))
 
+            elif l['class_name'] == 'LeakyReLU':
+                if save_type == 'txt':
+                    fout.write(str(l['config']['alpha']) + '\n')
+                elif save_type == 'binary':
+                    fout.write(struct.pack(
+                        'f', l['config']['alpha']))
+
             elif l['class_name'] == 'MaxPooling2D':
                 if save_type == 'txt':
                     fout.write(str(l['config']['pool_size'][0]) +
@@ -236,7 +243,7 @@ def save_weights(save_type, json_name="save_model.json", weights="save_model.h5"
 
 if __name__ == '__main__':
     model_type = 0  # config and weights in one single file
-    
+    """
     if model_type == 1:
         load_model_name = '../models_class/save_model.hdf5'
     model_name = '../models_class/save_model.json'
@@ -245,12 +252,19 @@ if __name__ == '__main__':
     save_name_binary = '../models_class/save_model.dat'
     """
     if model_type == 1:
-        load_model_name = '../models_od/tiny_yolo_ocr_6.hdf5'
-    model_name = '../models_od/tiny_yolo_ocr_6.json'
-    weights_name = '../models_od/tiny_yolo_ocr_6.h5'
-    save_name_txt = '../models_od/tiny_yolo_ocr_6.txt'
-    save_name_binary = '../models_od/tiny_yolo_ocr_6.dat'
-    """
+        load_model_name = '../models_od/tiny_yolo_ocr_7.hdf5'
+    model_name = '../models_od/tiny_yolo_ocr_7.json'
+    weights_name = '../models_od/tiny_yolo_ocr_7.h5'
+    save_name_txt = '../models_od/tiny_yolo_ocr_7.txt'
+    save_name_binary = '../models_od/tiny_yolo_ocr_7.dat'
+    
+    if model_type == 1:
+        load_model_name = '../models_od/mobilenet.hdf5'
+    model_name = '../models_od/mobilenet.json'
+    weights_name = '../models_od/mobilenet.h5'
+    save_name_txt = '../models_od/mobilenet.txt'
+    save_name_binary = '../models_od/mobilenet.dat'
+
     if model_type == 1:
         load_save_model(load_model_name, model_name, weights_name)
     save_weights('txt', json_name=model_name, weights=weights_name, output=save_name_txt)

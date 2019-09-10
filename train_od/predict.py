@@ -10,6 +10,10 @@ from utils import draw_boxes
 from frontend import YOLO
 import json
 from keras.models import model_from_json
+import tensorflow as tf
+print("Tensorflow version:" + tf.__version__)
+import keras; 
+print("Keras version:" + keras.__version__)
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="0"

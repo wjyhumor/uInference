@@ -5,7 +5,7 @@
 int main()
 {
     /*  Object detection */
-    char *model_name = "./models_od/tiny_yolo_ocr_6.dat";
+    char *model_name = "./models_od/tiny_yolo_ocr_7.dat";
     char *filename = "./ex_od.img";
     int resize_w = 320;
     int resize_h = 105;

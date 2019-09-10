@@ -19,6 +19,7 @@ from backend import MyYoloFeature, TinyYoloFeature_1, TinyYoloFeature_2, TinyYol
 
 #import models
 
+
 class YOLO(object):
     def __init__(self, backend,
                  input_width,
@@ -42,7 +43,7 @@ class YOLO(object):
         ##########################
         # Make the model
         ##########################
-        #models.model_1(self.input_height, self.input_width, self.input_channel, \
+        # models.model_1(self.input_height, self.input_width, self.input_channel, \
         #                self.max_box_per_image, self.nb_box, self.nb_class)
         # make the feature extractor layers
         input_image = Input(
@@ -51,52 +52,53 @@ class YOLO(object):
 
         if backend == 'Inception3':
             self.feature_extractor = Inception3Feature(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'SqueezeNet':
             self.feature_extractor = SqueezeNetFeature(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'MobileNet':
             self.feature_extractor = MobileNetFeature(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'Full Yolo':
             self.feature_extractor = FullYoloFeature(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'Tiny Yolo':
             self.feature_extractor = TinyYoloFeature(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'Tiny Yolo_1':
             self.feature_extractor = TinyYoloFeature_1(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'Tiny Yolo_2':
             self.feature_extractor = TinyYoloFeature_2(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'Tiny Yolo_3':
             self.feature_extractor = TinyYoloFeature_3(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'Tiny Yolo_4':
             self.feature_extractor = TinyYoloFeature_4(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'Tiny Yolo_5':
             self.feature_extractor = TinyYoloFeature_5(
-                self.input_width, self.input_height, self.input_channel)
+                 self.input_height, self.input_width,self.input_channel)
         elif backend == 'VGG16':
             self.feature_extractor = VGG16Feature(
-                self.input_width, self.input_height)
+                 self.input_height, self.input_width)
         elif backend == 'ResNet50':
             self.feature_extractor = ResNet50Feature(
-                self.input_width, self.input_height)
+                 self.input_height, self.input_width)
         elif backend == 'My Yolo':
             self.feature_extractor = MyYoloFeature(
-                self.input_width, self.input_height)
+                 self.input_height, self.input_width)
         else:
             raise Exception(
                 'Architecture not supported! Only support Full Yolo, Tiny Yolo, MobileNet, SqueezeNet, VGG16, ResNet50, and Inception3 at the moment!')
 
         # print(self.feature_extractor.get_output_shape())
         self.grid_h, self.grid_w = self.feature_extractor.get_output_shape()
-    
-        features = self.feature_extractor.extract(input_image)
-        
+
+        #features = self.feature_extractor.extract(input_image)
+        features = self.feature_extractor.feature_extractor.output
+
         # make the object detection layer
         output = Conv2D(self.nb_box * (4 + 1 + self.nb_class),
                         (1, 1), strides=(1, 1),
@@ -107,7 +109,9 @@ class YOLO(object):
                           4 + 1 + self.nb_class))(output)
         output = Lambda(lambda args: args[0])([output, self.true_boxes])
 
-        self.model = Model([input_image, self.true_boxes], output)
+        #self.model = Model([input_image, self.true_boxes], output)
+        self.model = Model(
+            [self.feature_extractor.feature_extractor.input, self.true_boxes], output)
 
         # initialize the weights of the detection layer
         layer = self.model.layers[-4]
@@ -415,6 +419,8 @@ class YOLO(object):
                                  workers=3,
                                  max_queue_size=8)
 
+        #self.model.save_weights(str(saved_weights_name), save_format='tf')
+
         ############################################
         # Compute mAP on the validation set
         ############################################
@@ -549,12 +555,12 @@ class YOLO(object):
 
     def predict(self, image):
         image_h, image_w, _ = image.shape
-        image = cv2.resize(image, (self.input_width, self.input_height))
+        image = cv2.resize(image, (self.input_height, self.input_width))
         image = self.feature_extractor.normalize(image)
 
         #image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         image = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140])
-        image = np.reshape(image, (image.shape[0], image.shape[1], 1))
+        image = np.reshape(image, (image.shape[1], image.shape[0], 1))
 
         input_image = image[:, :, ::-1]
         input_image = np.expand_dims(input_image, 0)

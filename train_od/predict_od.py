@@ -170,8 +170,8 @@ def decode_netout(netout, anchors, nb_class, obj_threshold=0.3, nms_threshold=0.
 
 def _main_():
     image_path = "../ex_od.jpg"
-    saved_config_name = "../models_od/tiny_yolo_ocr_6.json"
-    saved_weights_name = "../models_od/tiny_yolo_ocr_6.h5"
+    saved_config_name = "../models_od/tiny_yolo_ocr_7.json"
+    saved_weights_name = "../models_od/tiny_yolo_ocr_7.h5"
     # model
     yolo = YOLO(backend="Tiny Yolo_5",
                 input_width=320,
