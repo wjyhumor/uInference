@@ -4,22 +4,22 @@ void conv2d_load_inference(FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
     int conv_w = 0;
-    if (!fread(&conv_w, sizeof(char), 1, file))
+    if (!fread(&conv_w, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int conv_h = 0;
-    if (!fread(&conv_h, sizeof(char), 1, file))
+    if (!fread(&conv_h, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int in_c = 0;
-    if (!fread(&in_c, sizeof(char), 1, file))
+    if (!fread(&in_c, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int out_c = 0;
-    if (!fread(&out_c, sizeof(char), 1, file))
+    if (!fread(&out_c, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
@@ -28,8 +28,12 @@ void conv2d_load_inference(FILE *file, in_out *in)
     {
         debug("Read weights error!");
     }
-    int type = 0; //{"valid":1, "same":2}
-    if (!fread(&type, sizeof(char), 1, file))
+    if (!fread(&stride, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int padding = 0; //{"valid":1, "same":2}
+    if (!fread(&padding, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
@@ -39,12 +43,12 @@ void conv2d_load_inference(FILE *file, in_out *in)
         debug("Read weights error!");
     }
     debug("use_bias: %d", use_bias);
-    debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, stride:%d, type:%d",
-          conv_w, conv_h, in_c, out_c, stride, type);
+    debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, stride:%d, padding:%d",
+          conv_w, conv_h, in_c, out_c, stride, padding);
 
     int pad_w = 0;
     int pad_h = 0;
-    if (type == 2) // same
+    if (padding == 2) // same
     {
         out.w = in->w;
         out.h = in->h;
@@ -57,16 +61,16 @@ void conv2d_load_inference(FILE *file, in_out *in)
         }
         //debug("pad:%d", pad);
     }
-    else if (type == 1) // valid
+    else if (padding == 1) // valid
     {
         out.w = in->w;
         out.h = in->h;
         out.c = out_c;
-        //out.data = calloc(out.w*out.h*out.c, sizeof(float));
+        out.data = calloc(out.w * out.h * out.c, sizeof(float));
     }
     else
     {
-        debug("Read conv2d type error!");
+        debug("Read conv2d padding error!");
         return;
     }
 
@@ -143,13 +147,171 @@ void conv2d_load_inference(FILE *file, in_out *in)
     out.data = NULL;
 }
 
+void depthwiseconv2d_load_inference(FILE *file, in_out *in)
+{
+    in_out out = {0, 0, 0, NULL};
+    int conv_w = 0;
+    if (!fread(&conv_w, sizeof(int), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int conv_h = 0;
+    if (!fread(&conv_h, sizeof(int), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int in_c = 0;
+    if (!fread(&in_c, sizeof(int), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int out_c = 0;
+    if (!fread(&out_c, sizeof(int), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int kernel = 0;
+    if (!fread(&kernel, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    if (!fread(&kernel, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int stride = 0;
+    if (!fread(&stride, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    if (!fread(&stride, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int padding = 0; //{"valid":1, "same":2}
+    if (!fread(&padding, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int depth_multiplier = 0;
+    if (!fread(&depth_multiplier, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int use_bias = 0;
+    if (!fread(&use_bias, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    debug("use_bias: %d", use_bias);
+    debug("conv_w:%d, conv_h:%d, in_c:%d, out_c:%d, kernel:%d, stride:%d, padding:%d, depth_multiplier:%d",
+          conv_w, conv_h, in_c, out_c, kernel, stride, padding, depth_multiplier);
+
+    int pad_w = 0;
+    int pad_h = 0;
+    if (padding == 2) // same
+    {
+        out.w = in->w;
+        out.h = in->h;
+        out.c = in->c;
+        out.data = calloc(out.w * out.h * out.c, sizeof(float));
+        if (conv_w % 2 == 1)
+        {
+            pad_w = conv_w / 2;
+            pad_h = conv_h / 2;
+        }
+        //debug("pad:%d", pad);
+    }
+    else if (padding == 1) // valid
+    {
+        out.w = in->w;
+        out.h = in->h;
+        out.c = in->c;
+        out.data = calloc(out.w * out.h * out.c, sizeof(float));
+    }
+    else
+    {
+        debug("Read conv2d padding error!");
+        return;
+    }
+
+    float *weights = calloc(conv_w * conv_h * in_c, sizeof(float));
+    float *bias = NULL;
+    if (use_bias == 1)
+    {
+        bias = calloc(1, sizeof(float));
+    }
+
+    for (int c_out = 0; c_out < out.c; c_out++)
+    {
+        for (int i = 0; i < conv_w * conv_h; i++)
+        {
+            if (!fread(weights + i, sizeof(float), 1, file))
+            {
+                debug("Read conv2d weights error!");
+            }
+        }
+        if (use_bias == 1)
+        {
+            if (!fread(bias, sizeof(float), 1, file))
+            {
+                debug("Read conv2d bias error!");
+            }
+        }
+        /*  
+        for(int i = 0; i < conv_w*conv_h*in_c; i++)
+        {
+            printf("%f ", weights[i]);
+        }
+        printf("\n");
+        printf("%f\n", *bias);
+        */
+
+        for (int h = 0; h < out.h; h++)
+        {
+            for (int w = 0; w < out.w; w++)
+            {
+                out.data[c_out * out.w * out.h + h * out.w + w] = 0;
+                for (int y = 0; y < conv_h; y++)
+                {
+                    int in_y = h + y - pad_h;
+                    if (in_y < 0 || in_y >= in->h)
+                        continue;
+                    for (int x = 0; x < conv_w; x++)
+                    {
+                        int in_x = w + x - pad_w;
+                        if (in_x < 0 || in_x >= in->w)
+                            continue;
+                        out.data[c_out * out.w * out.h + h * out.w + w] +=
+                            in->data[c_out * in->w * in->h + in_y * in->w + in_x] *
+                            weights[c_out * conv_w * conv_h + y * conv_w + x];
+                    }
+                }
+                if (use_bias == 1)
+                {
+                    out.data[c_out * out.w * out.h + h * out.w + w] += bias[0];
+                }
+            }
+        }
+    }
+
+    free(weights);
+    free(bias);
+    free_in_out(in);
+    in->c = out.c;
+    in->w = out.w;
+    in->h = out.h;
+    in->data = out.data;
+    out.data = NULL;
+}
+
 void bn_load_inference(FILE *file, in_out *in)
 {
     float gamma = 1;
     float beta = 0;
     float mean = 0;
     float variance = 1;
-    debug();
+
     for (int c = 0; c < in->c; c++)
     {
         if (!fread(&gamma, sizeof(float), 1, file))
@@ -168,8 +330,8 @@ void bn_load_inference(FILE *file, in_out *in)
         {
             debug("Read BN weights error!");
         }
-        debug();
-        printf("%f, %f, %f, %f \n", gamma, beta, mean, variance);
+        
+        //printf("%f, %f, %f, %f \n", gamma, beta, mean, variance);
         for (int h = 0; h < in->h; h++)
         {
             for (int w = 0; w < in->w; w++)
@@ -181,7 +343,6 @@ void bn_load_inference(FILE *file, in_out *in)
                     beta;
             }
         }
-        debug();
     }
 }
 
@@ -229,6 +390,44 @@ void activation_load_inference(FILE *file, in_out *in)
             in->data[i] /= sum;
         }
         print_in_out(*in);
+    }
+}
+
+void relu_load_inference(FILE *file, in_out *in)
+{
+    float threshold = 0;
+    if (!fread(&threshold, sizeof(float), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    debug("ReLU threshold: %f", threshold);
+
+    float max_value = 0;
+    if (!fread(&max_value, sizeof(float), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    debug("ReLU max_value: %f", max_value);
+
+    float alpha = 0;
+    if (!fread(&alpha, sizeof(float), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    debug("leakyrelu alpha: %f", alpha);
+
+    for (int c = 0; c < in->c; c++)
+    {
+        for (int h = 0; h < in->h; h++)
+        {
+            for (int w = 0; w < in->w; w++)
+            {
+                in->data[c * in->w * in->h + h * in->w + w] =
+                    in->data[c * in->w * in->h + h * in->w + w] >= max_value ? max_value : in->data[c * in->w * in->h + h * in->w + w];
+                in->data[c * in->w * in->h + h * in->w + w] =
+                    in->data[c * in->w * in->h + h * in->w + w] <= threshold ? alpha * (in->data[c * in->w * in->h + h * in->w + w] - threshold) : in->data[c * in->w * in->h + h * in->w + w];
+            }
+        }
     }
 }
 
@@ -344,6 +543,55 @@ void maxpooling_load_inference(FILE *file, in_out *in)
     {
         debug("Maxpooling type error!");
         return;
+    }
+    free_in_out(in);
+    in->c = out.c;
+    in->w = out.w;
+    in->h = out.h;
+    in->data = out.data;
+    out.data = NULL;
+}
+
+void zeropadding2d_load_inference(FILE *file, in_out *in)
+{
+    in_out out = {0, 0, 0, NULL};
+    int top_pad = 0;
+    if (!fread(&top_pad, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int bottom_pad = 0;
+    if (!fread(&bottom_pad, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int left_pad = 0;
+    if (!fread(&left_pad, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+    int right_pad = 0;
+    if (!fread(&right_pad, sizeof(char), 1, file))
+    {
+        debug("Read weights error!");
+    }
+
+    out.w = in->w + left_pad + right_pad;
+    out.h = in->h + top_pad + bottom_pad;
+    out.c = in->c;
+    out.data = calloc(out.w * out.h * out.c, sizeof(float));
+    debug("out:%d x %d x %d", out.w, out.h, out.c);
+    for (int c_out = 0; c_out < out.c; c_out++)
+    {
+        for (int h = top_pad; h < out.h - bottom_pad; h++)
+        {
+            for (int w = left_pad; w < out.w - right_pad; w++)
+            {
+
+                out.data[c_out * out.w * out.h + h * out.w + w] =
+                    in->data[c_out * in->w * in->h + (h - top_pad) * out.w + w - left_pad];
+            }
+        }
     }
     free_in_out(in);
     in->c = out.c;
@@ -569,13 +817,12 @@ void yolo_v2(in_out *in, int resize_w, int resize_h)
     {
         debug("%d, %f, %d, %d, %d, %d",
               box_list[i]->label, box_list[i]->score,
-              (int)(box_list[i]->xmin * resize_w), 
-              (int)(box_list[i]->xmax * resize_w), 
+              (int)(box_list[i]->xmin * resize_w),
+              (int)(box_list[i]->xmax * resize_w),
               (int)(box_list[i]->ymin * resize_h),
               (int)(box_list[i]->ymax * resize_h));
         free(box_list[i]);
     }
-
 }
 
 in_out *uInference(in_out *im, char *model_name)
@@ -611,7 +858,6 @@ in_out *uInference(in_out *im, char *model_name)
             debug("Layer BatchNormalization");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
             bn_load_inference(file, in);
-            debug();
             break;
         case 3: //Activation
             debug("Layer Activation");
@@ -652,6 +898,18 @@ in_out *uInference(in_out *im, char *model_name)
         case 11: // LeakyReLU
             debug("Layer LeakyReLU");
             leakyrelu_load_inference(file, in);
+            break;
+        case 12: // DepthwiseConv2D
+            debug("Layer DepthwiseConv2D");
+            depthwiseconv2d_load_inference(file, in);
+            break;
+        case 13: // ZeroPadding2D
+            debug("Layer ZeroPadding2D");
+            zeropadding2d_load_inference(file, in);
+            break;
+        case 14: // ReLU
+            debug("Layer ReLU");
+            relu_load_inference(file, in);
             break;
         default:
             debug("layer_type: %d not recognized!", layer_type);

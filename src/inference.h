@@ -4,11 +4,15 @@
 #include "common.h"
 
 void conv2d_load_inference(FILE *file, in_out *in);
+void depthwiseconv2d_load_inference(FILE *file, in_out *in);
 void bn_load_inference(FILE *file, in_out *in);
 void activation_load_inference(FILE *file, in_out *in);
 void maxpooling_load_inference(FILE *file, in_out *in);
 void flatten_load_inference(FILE *file, in_out *in);
 void dense_load_inference(FILE *file, in_out *in);
+void leakyrelu_load_inference(FILE *file, in_out *in);
+void relu_load_inference(FILE *file, in_out *in);
+void zeropadding2d_load_inference(FILE *file, in_out *in);
 
 in_out* uInference(in_out *im, char *model_name);
 
