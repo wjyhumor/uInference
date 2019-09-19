@@ -1,44 +1,81 @@
 #include "inference.h"
 
-void conv2d_load_inference(FILE *file, in_out *in)
+int read_weight(int type, void *buf, size_t size, size_t n, FILE *fp)
+{
+    if(type == 0)
+    {
+        return read_weight(type, &buf, size, n, fp);
+    }
+    else if(type == 1)
+    {
+        buf = WEIGHT_ADDR_BASE + address_shift;
+        if(size == 1)
+        {
+            address_shift += 1;
+            return 1;
+        }
+        else if(size == 2)
+        {
+            address_shift += 4;
+            return 2;
+        }
+        else if(size == 4)
+        {
+            address_shift += 8;
+            return 4;
+        }
+        else
+        {
+            return 0;
+        }
+        
+    }
+    else
+    {
+        return 0;
+    }
+    
+}
+
+void conv2d_load_inference(int type, FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
     int conv_w = 0;
-    if (!fread(&conv_w, sizeof(int), 1, file))
+    if (!read_weight(type, &conv_w, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int conv_h = 0;
-    if (!fread(&conv_h, sizeof(int), 1, file))
+    if (!read_weight(type, &conv_h, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int in_c = 0;
-    if (!fread(&in_c, sizeof(int), 1, file))
+    if (!read_weight(type, &in_c, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int out_c = 0;
-    if (!fread(&out_c, sizeof(int), 1, file))
+    if (!read_weight(type, &out_c, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int stride = 0;
-    if (!fread(&stride, sizeof(char), 1, file))
+    if (!read_weight(type, &stride, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    if (!fread(&stride, sizeof(char), 1, file))
+    if (!read_weight(type, &stride, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int padding = 0; //{"valid":1, "same":2}
-    if (!fread(&padding, sizeof(char), 1, file))
+    if (!read_weight(type, &padding, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int use_bias = 0; //{"valid":1, "same":2}
-    if (!fread(&use_bias, sizeof(char), 1, file))
+    if (!read_weight(type, &use_bias, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
@@ -85,14 +122,14 @@ void conv2d_load_inference(FILE *file, in_out *in)
     {
         for (int i = 0; i < conv_w * conv_h * in_c; i++)
         {
-            if (!fread(weights + i, sizeof(float), 1, file))
+            if (!read_weight(type, weights + i, sizeof(float), 1, file))
             {
                 debug("Read conv2d weights error!");
             }
         }
         if (use_bias == 1)
         {
-            if (!fread(bias, sizeof(float), 1, file))
+            if (!read_weight(type, bias, sizeof(float), 1, file))
             {
                 debug("Read conv2d bias error!");
             }
@@ -147,59 +184,59 @@ void conv2d_load_inference(FILE *file, in_out *in)
     out.data = NULL;
 }
 
-void depthwiseconv2d_load_inference(FILE *file, in_out *in)
+void depthwiseconv2d_load_inference(int type, FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
     int conv_w = 0;
-    if (!fread(&conv_w, sizeof(int), 1, file))
+    if (!read_weight(type, &conv_w, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int conv_h = 0;
-    if (!fread(&conv_h, sizeof(int), 1, file))
+    if (!read_weight(type, &conv_h, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int in_c = 0;
-    if (!fread(&in_c, sizeof(int), 1, file))
+    if (!read_weight(type, &in_c, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int out_c = 0;
-    if (!fread(&out_c, sizeof(int), 1, file))
+    if (!read_weight(type, &out_c, sizeof(int), 1, file))
     {
         debug("Read weights error!");
     }
     int kernel = 0;
-    if (!fread(&kernel, sizeof(char), 1, file))
+    if (!read_weight(type, &kernel, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    if (!fread(&kernel, sizeof(char), 1, file))
+    if (!read_weight(type, &kernel, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int stride = 0;
-    if (!fread(&stride, sizeof(char), 1, file))
+    if (!read_weight(type, &stride, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    if (!fread(&stride, sizeof(char), 1, file))
+    if (!read_weight(type, &stride, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int padding = 0; //{"valid":1, "same":2}
-    if (!fread(&padding, sizeof(char), 1, file))
+    if (!read_weight(type, &padding, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int depth_multiplier = 0;
-    if (!fread(&depth_multiplier, sizeof(char), 1, file))
+    if (!read_weight(type, &depth_multiplier, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int use_bias = 0;
-    if (!fread(&use_bias, sizeof(char), 1, file))
+    if (!read_weight(type, &use_bias, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
@@ -246,14 +283,14 @@ void depthwiseconv2d_load_inference(FILE *file, in_out *in)
     {
         for (int i = 0; i < conv_w * conv_h; i++)
         {
-            if (!fread(weights + i, sizeof(float), 1, file))
+            if (!read_weight(type, weights + i, sizeof(float), 1, file))
             {
                 debug("Read conv2d weights error!");
             }
         }
         if (use_bias == 1)
         {
-            if (!fread(bias, sizeof(float), 1, file))
+            if (!read_weight(type, bias, sizeof(float), 1, file))
             {
                 debug("Read conv2d bias error!");
             }
@@ -305,7 +342,7 @@ void depthwiseconv2d_load_inference(FILE *file, in_out *in)
     out.data = NULL;
 }
 
-void bn_load_inference(FILE *file, in_out *in)
+void bn_load_inference(int type, FILE *file, in_out *in)
 {
     float gamma = 1;
     float beta = 0;
@@ -314,19 +351,19 @@ void bn_load_inference(FILE *file, in_out *in)
 
     for (int c = 0; c < in->c; c++)
     {
-        if (!fread(&gamma, sizeof(float), 1, file))
+        if (!read_weight(type, &gamma, sizeof(float), 1, file))
         {
             debug("Read BN weights error!");
         }
-        if (!fread(&beta, sizeof(float), 1, file))
+        if (!read_weight(type, &beta, sizeof(float), 1, file))
         {
             debug("Read BN weights error!");
         }
-        if (!fread(&mean, sizeof(float), 1, file))
+        if (!read_weight(type, &mean, sizeof(float), 1, file))
         {
             debug("Read BN weights error!");
         }
-        if (!fread(&variance, sizeof(float), 1, file))
+        if (!read_weight(type, &variance, sizeof(float), 1, file))
         {
             debug("Read BN weights error!");
         }
@@ -346,15 +383,15 @@ void bn_load_inference(FILE *file, in_out *in)
     }
 }
 
-void activation_load_inference(FILE *file, in_out *in)
+void activation_load_inference(int type, FILE *file, in_out *in)
 {
-    int type = 0;
-    if (!fread(&type, sizeof(char), 1, file))
+    int activation_type = 0;
+    if (!read_weight(type, &activation_type, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     //debug("activation type: %d", type);
-    if (type == 1) // relu
+    if (activation_type == 1) // relu
     {
         for (int c = 0; c < in->c; c++)
         {
@@ -368,7 +405,7 @@ void activation_load_inference(FILE *file, in_out *in)
             }
         }
     }
-    else if (type == 2) // softmax
+    else if (activation_type == 2) // softmax
     {
         float sum = 0;
         float largest = -FLT_MAX;
@@ -393,24 +430,24 @@ void activation_load_inference(FILE *file, in_out *in)
     }
 }
 
-void relu_load_inference(FILE *file, in_out *in)
+void relu_load_inference(int type, FILE *file, in_out *in)
 {
     float threshold = 0;
-    if (!fread(&threshold, sizeof(float), 1, file))
+    if (!read_weight(type, &threshold, sizeof(float), 1, file))
     {
         debug("Read weights error!");
     }
     debug("ReLU threshold: %f", threshold);
 
     float max_value = 0;
-    if (!fread(&max_value, sizeof(float), 1, file))
+    if (!read_weight(type, &max_value, sizeof(float), 1, file))
     {
         debug("Read weights error!");
     }
     debug("ReLU max_value: %f", max_value);
 
     float alpha = 0;
-    if (!fread(&alpha, sizeof(float), 1, file))
+    if (!read_weight(type, &alpha, sizeof(float), 1, file))
     {
         debug("Read weights error!");
     }
@@ -431,10 +468,10 @@ void relu_load_inference(FILE *file, in_out *in)
     }
 }
 
-void leakyrelu_load_inference(FILE *file, in_out *in)
+void leakyrelu_load_inference(int type, FILE *file, in_out *in)
 {
     float alpha = 0;
-    if (!fread(&alpha, sizeof(float), 1, file))
+    if (!read_weight(type, &alpha, sizeof(float), 1, file))
     {
         debug("Read weights error!");
     }
@@ -452,28 +489,28 @@ void leakyrelu_load_inference(FILE *file, in_out *in)
     }
 }
 
-void maxpooling_load_inference(FILE *file, in_out *in)
+void maxpooling_load_inference(int type, FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
     int pool_w = 0;
-    if (!fread(&pool_w, sizeof(char), 1, file))
+    if (!read_weight(type, &pool_w, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int pool_h = 0;
-    if (!fread(&pool_h, sizeof(char), 1, file))
+    if (!read_weight(type, &pool_h, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
-    int type = 0; //{"valid":1, "same":2}
-    if (!fread(&type, sizeof(char), 1, file))
+    int pooling_type = 0; //{"valid":1, "same":2}
+    if (!read_weight(type, &pooling_type, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int stride = 0;
-    debug("pool_w:%d, pool_h:%d, type:%d", pool_w, pool_h, type);
+    debug("pool_w:%d, pool_h:%d, type:%d", pool_w, pool_h, pooling_type);
 
-    if (type == 1) // valid
+    if (pooling_type == 1) // valid
     {
         stride = pool_w;
         out.w = in->w / pool_w;
@@ -505,7 +542,7 @@ void maxpooling_load_inference(FILE *file, in_out *in)
             }
         }
     }
-    else if (type == 2) // same
+    else if (pooling_type == 2) // same
     {
         stride = 1;
         out.w = in->w;
@@ -552,26 +589,26 @@ void maxpooling_load_inference(FILE *file, in_out *in)
     out.data = NULL;
 }
 
-void zeropadding2d_load_inference(FILE *file, in_out *in)
+void zeropadding2d_load_inference(int type, FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
     int top_pad = 0;
-    if (!fread(&top_pad, sizeof(char), 1, file))
+    if (!read_weight(type, &top_pad, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int bottom_pad = 0;
-    if (!fread(&bottom_pad, sizeof(char), 1, file))
+    if (!read_weight(type, &bottom_pad, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int left_pad = 0;
-    if (!fread(&left_pad, sizeof(char), 1, file))
+    if (!read_weight(type, &left_pad, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int right_pad = 0;
-    if (!fread(&right_pad, sizeof(char), 1, file))
+    if (!read_weight(type, &right_pad, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
@@ -601,7 +638,7 @@ void zeropadding2d_load_inference(FILE *file, in_out *in)
     out.data = NULL;
 }
 
-void flatten_load_inference(FILE *file, in_out *in)
+void flatten_load_inference(int type, FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
     out.w = in->w;
@@ -627,16 +664,16 @@ void flatten_load_inference(FILE *file, in_out *in)
     out.data = NULL;
 }
 
-void dense_load_inference(FILE *file, in_out *in)
+void dense_load_inference(int type, FILE *file, in_out *in)
 {
     in_out out = {0, 0, 0, NULL};
     int in_w = 0;
-    if (!fread(&in_w, sizeof(char), 1, file))
+    if (!read_weight(type, &in_w, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
     int out_w = 0;
-    if (!fread(&out_w, sizeof(char), 1, file))
+    if (!read_weight(type, &out_w, sizeof(char), 1, file))
     {
         debug("Read weights error!");
     }
@@ -653,12 +690,12 @@ void dense_load_inference(FILE *file, in_out *in)
     {
         for (int i = 0; i < in->w; i++)
         {
-            if (!fread(weights + i, sizeof(float), 1, file))
+            if (!read_weight(type, weights + i, sizeof(float), 1, file))
             {
                 debug("Read Dense weights error!");
             }
         }
-        if (!fread(bias, sizeof(float), 1, file))
+        if (!read_weight(type, bias, sizeof(float), 1, file))
         {
             debug("Read Dense bias error!");
         }
@@ -702,7 +739,7 @@ void yolo_v2(in_out *in, int resize_w, int resize_h)
     int nb_box = 5;             // #anchors
     int paras = in->c / nb_box; //15
     debug("grid_h:%d, grid_w:%d, nb_box:%d", grid_h, grid_w, nb_box);
-    // sigmoid for the 5th of each bbox
+    // sigmoid for the 5th of each b_box
     for (int e = 0; e < nb_box; e++)
     {
         for (int j = 0; j < in->h; j++)
@@ -759,8 +796,8 @@ void yolo_v2(in_out *in, int resize_w, int resize_h)
             }
         }
     }
-    // get bbox
-    bbox *box_list[10];
+    // get b_box
+    b_box *box_list[10];
     int index_box = 0;
     for (int e = 0; e < nb_box; e++)
     {
@@ -785,7 +822,7 @@ void yolo_v2(in_out *in, int resize_w, int resize_h)
                     h = anchors[2 * e + 1] * exp(h) / (float)grid_h;
                     float confidence = in->data[e * paras * grid_h * grid_w + 4 * grid_h * grid_w + j * grid_w + k];
                     //debug("%f, %f, %f, %f, %f", x, y, w, h, confidence);
-                    box_list[index_box] = calloc(1, sizeof(bbox));
+                    box_list[index_box] = calloc(1, sizeof(b_box));
                     box_list[index_box]->xmin = x - w / 2.0f;
                     box_list[index_box]->ymin = y - h / 2.0f;
                     box_list[index_box]->xmax = x + w / 2.0f;
@@ -804,7 +841,7 @@ void yolo_v2(in_out *in, int resize_w, int resize_h)
                     index_box++;
                     if (index_box >= 10)
                     {
-                        debug("Error: Not enough buffer for bbox!");
+                        debug("Error: Not enough buffer for b_box!");
                         break;
                     }
                 }
@@ -825,23 +862,37 @@ void yolo_v2(in_out *in, int resize_w, int resize_h)
     }
 }
 
-in_out *uInference(in_out *im, char *model_name)
+in_out *uInference(int type, in_out *im, char *model_name)
 {
     in_out *in = im;
-    debug("model_name: %s", model_name);
+    FILE *file;
 
-    FILE *file = fopen(model_name, "rb");
-    if (file == 0)
+    if(type == 0)
     {
-        printf("Couldn't open file: %s\n", model_name);
+        debug("model_name: %s", model_name);
+        file = fopen(model_name, "rb");
+        if (file == 0)
+        {
+            printf("Couldn't open file: %s\n", model_name);
+            return in;
+        }
+    }
+    else if(type == 1)
+    {
+
+    } 
+    else
+    {
+        printf("Error: type Error!\n");
         return in;
     }
+    
 
     int layer = 0;
     while (1)
     {
         int layer_type = 0;
-        if (!fread(&layer_type, sizeof(char), 1, file))
+        if (!read_weight(type, &layer_type, sizeof(char), 1, file))
         {
             debug("Read weights finished!");
             break;
@@ -852,32 +903,32 @@ in_out *uInference(in_out *im, char *model_name)
         case 1: //Conv2D
             debug("Layer Conv2D");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
-            conv2d_load_inference(file, in);
+            conv2d_load_inference(type, file, in);
             break;
         case 2: //BatchNormalization
             debug("Layer BatchNormalization");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
-            bn_load_inference(file, in);
+            bn_load_inference(type, file, in);
             break;
         case 3: //Activation
             debug("Layer Activation");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
-            activation_load_inference(file, in);
+            activation_load_inference(type, file, in);
             break;
         case 4: //MaxPooling2D
             debug("Layer MaxPooling2D");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
-            maxpooling_load_inference(file, in);
+            maxpooling_load_inference(type, file, in);
             break;
         case 5: //Flatten
             debug("Layer Flatten");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
-            flatten_load_inference(file, in);
+            flatten_load_inference(type, file, in);
             break;
         case 6: //Dense
             debug("Layer Dense");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
-            dense_load_inference(file, in);
+            dense_load_inference(type, file, in);
             break;
         case 7: //InputLayer
             debug("Layer InputLayer");
@@ -897,19 +948,19 @@ in_out *uInference(in_out *im, char *model_name)
             break;
         case 11: // LeakyReLU
             debug("Layer LeakyReLU");
-            leakyrelu_load_inference(file, in);
+            leakyrelu_load_inference(type, file, in);
             break;
         case 12: // DepthwiseConv2D
             debug("Layer DepthwiseConv2D");
-            depthwiseconv2d_load_inference(file, in);
+            depthwiseconv2d_load_inference(type, file, in);
             break;
         case 13: // ZeroPadding2D
             debug("Layer ZeroPadding2D");
-            zeropadding2d_load_inference(file, in);
+            zeropadding2d_load_inference(type, file, in);
             break;
         case 14: // ReLU
             debug("Layer ReLU");
-            relu_load_inference(file, in);
+            relu_load_inference(type, file, in);
             break;
         default:
             debug("layer_type: %d not recognized!", layer_type);

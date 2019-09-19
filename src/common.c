@@ -188,7 +188,11 @@ in_out load_image(char *filename, int w, int h, int c)
     if (file == 0)
     {
         printf("Couldn't open file: %s\n", filename);
-        exit(0);
+        out.w = 0;
+        out.h = 0;
+        out.c = 0;
+        free(out.data);
+        return out;
     }
 
     for (int k = 0; k < c; k++)
