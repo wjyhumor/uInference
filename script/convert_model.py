@@ -5,7 +5,7 @@ from keras.models import load_model
 import json
 import struct
 
-layer_dic = {"Conv2D": 1, "BatchNormalization": 2, "Activation": 3, "MaxPooling2D": 4,
+layer_dic = {"End":0, "Conv2D": 1, "BatchNormalization": 2, "Activation": 3, "MaxPooling2D": 4,
              "Flatten": 5, "Dense": 6, "InputLayer": 7, "Model": 8, "Reshape": 9,
              "Lambda": 10, "LeakyReLU": 11, "DepthwiseConv2D": 12, "ZeroPadding2D": 13,
              "ReLU": 14}
@@ -326,6 +326,10 @@ def save_weights(save_type, json_name="save_model.json", weights="save_model.h5"
                                 if l['config']['layers'][i]["config"]["use_bias"] == True:
                                     fout.write(struct.pack('f', b[o]))
 
+        if save_type == 'txt':
+            fout.write('End\n')
+        elif save_type == 'binary':
+            fout.write(struct.pack('>B', layer_dic["End"]))
     fout.close()
 
 
@@ -339,7 +343,7 @@ if __name__ == '__main__':
     save_name_txt = '../models_class/save_model.txt'
     save_name_binary = '../models_class/save_model.dat'
     """
-    """
+    
     if model_type == 1:
         load_model_name = '../models_od/tiny_yolo_ocr_7.hdf5'
     model_name = '../models_od/tiny_yolo_ocr_7.json'
@@ -347,13 +351,14 @@ if __name__ == '__main__':
     save_name_txt = '../models_od/tiny_yolo_ocr_7.txt'
     save_name_binary = '../models_od/tiny_yolo_ocr_7.dat'    
     """
+    
     if model_type == 1:
         load_model_name = '../models_od/mobilenet.hdf5'
     model_name = '../models_od/mobilenet.json'
     weights_name = '../models_od/mobilenet.h5'
     save_name_txt = '../models_od/mobilenet.txt'
     save_name_binary = '../models_od/mobilenet.dat'
-    
+    """
     if model_type == 1:
         load_save_model(load_model_name, model_name, weights_name)
     save_weights('txt', json_name=model_name, weights=weights_name, output=save_name_txt)

@@ -4,7 +4,7 @@ int read_weight(int type, void *buf, size_t size, size_t n, FILE *fp)
 {
     if(type == 0)
     {
-        return read_weight(type, &buf, size, n, fp);
+        return fread(buf, size, n, fp);
     }
     else if(type == 1)
     {
@@ -368,7 +368,7 @@ void bn_load_inference(int type, FILE *file, in_out *in)
             debug("Read BN weights error!");
         }
         
-        //printf("%f, %f, %f, %f \n", gamma, beta, mean, variance);
+        //debug("%f, %f, %f, %f ", gamma, beta, mean, variance);
         for (int h = 0; h < in->h; h++)
         {
             for (int w = 0; w < in->w; w++)
@@ -873,7 +873,7 @@ in_out *uInference(int type, in_out *im, char *model_name)
         file = fopen(model_name, "rb");
         if (file == 0)
         {
-            printf("Couldn't open file: %s\n", model_name);
+            debug("Couldn't open file: %s", model_name);
             return in;
         }
     }
@@ -883,23 +883,27 @@ in_out *uInference(int type, in_out *im, char *model_name)
     } 
     else
     {
-        printf("Error: type Error!\n");
+        debug("Error: type Error!");
         return in;
     }
     
 
     int layer = 0;
-    while (1)
+    int flag_end = 0;
+    while (flag_end == 0)
     {
         int layer_type = 0;
         if (!read_weight(type, &layer_type, sizeof(char), 1, file))
         {
-            debug("Read weights finished!");
-            break;
+            debug("Read weights error!");
         }
         debug("layer type: %d", layer_type);
         switch (layer_type)
         {
+        case 0: //End
+            flag_end = 1;
+            debug("Read weights finished!");
+            break;
         case 1: //Conv2D
             debug("Layer Conv2D");
             debug("in: %d x %d x %d", in->w, in->h, in->c);
@@ -973,7 +977,7 @@ in_out *uInference(int type, in_out *im, char *model_name)
         {
             save_in_out(*in);
             debug("shape:w=%d,h=%d,c=%d", in->w, in->h, in->c);
-            printf("layer %d, type %d saved\n", layer, layer_type);
+            debug("layer %d, type %d saved", layer, layer_type);
         }
         */
         layer++;
