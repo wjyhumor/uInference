@@ -397,7 +397,7 @@ void activation_load_inference(int type, FILE *file, in_out *in)
         {
             in->data[i] /= sum;
         }
-        print_in_out(*in);
+        //print_in_out(*in);
     }
 }
 

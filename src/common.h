@@ -9,7 +9,13 @@
 #include <time.h>
 #include <stdint.h>
 
-#define debug(a, args...) printf("%s(%s:%d) " a "\n", __func__, __FILE__, __LINE__, ##args)
+#define debug(a, args...) //printf("%s(%s:%d) " a "\n", __func__, __FILE__, __LINE__, ##args)
+
+typedef struct
+{
+    int8_t result;
+    int8_t possibility;
+} uinference_result;
 
 typedef struct
 {

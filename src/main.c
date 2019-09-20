@@ -27,6 +27,7 @@ int main()
 
     int type = 0;
     in_out* res = uInference(type, &im, model_name);
+    print_in_out(*res);
     //yolo_v2(res, resize_w, resize_h);
     
     clock_t difference = clock() - before;

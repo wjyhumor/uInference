@@ -24,5 +24,4 @@ int read_weight(int type, void *buf, size_t size, size_t n, FILE *fp);
 
 in_out* uInference(int type, in_out *im, char *model_name);
 
-
 #endif
