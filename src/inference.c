@@ -1,44 +1,8 @@
 #include "inference.h"
 
-int read_weight(int type, void *buf, size_t size, size_t n, FILE *fp)
-{
-    if(type == 0)
-    {
-        return fread(buf, size, n, fp);
-    }
-    else if(type == 1)
-    {
-        buf = WEIGHT_ADDR_BASE + address_shift;
-        if(size == 1)
-        {
-            address_shift += 1;
-            return 1;
-        }
-        else if(size == 2)
-        {
-            address_shift += 4;
-            return 2;
-        }
-        else if(size == 4)
-        {
-            address_shift += 8;
-            return 4;
-        }
-        else
-        {
-            return 0;
-        }
-        
-    }
-    else
-    {
-        return 0;
-    }
-    
-}
-
 void conv2d_load_inference(int type, FILE *file, in_out *in)
 {
+    //print_in_out(*in);
     in_out out = {0, 0, 0, NULL};
     int conv_w = 0;
     if (!read_weight(type, &conv_w, sizeof(int), 1, file))
@@ -90,7 +54,9 @@ void conv2d_load_inference(int type, FILE *file, in_out *in)
         out.w = in->w;
         out.h = in->h;
         out.c = out_c;
+        debug("%d, %d, %d", out.w, out.h, out.c);
         out.data = calloc(out.w * out.h * out.c, sizeof(float));
+        debug();
         if (conv_w % 2 == 1)
         {
             pad_w = conv_w / 2;
@@ -135,14 +101,15 @@ void conv2d_load_inference(int type, FILE *file, in_out *in)
             }
         }
         /*  
-        for(int i = 0; i < conv_w*conv_h*in_c; i++)
+        debug("weights:---------------");
+        for (int i = 0; i < conv_w * conv_h * in_c; i++)
         {
             printf("%f ", weights[i]);
         }
         printf("\n");
         printf("%f\n", *bias);
-        */
-
+        debug("weights end---------------");
+*/
         for (int h = 0; h < out.h; h++)
         {
             for (int w = 0; w < out.w; w++)
@@ -182,6 +149,7 @@ void conv2d_load_inference(int type, FILE *file, in_out *in)
     in->h = out.h;
     in->data = out.data;
     out.data = NULL;
+    //print_in_out(*in);
 }
 
 void depthwiseconv2d_load_inference(int type, FILE *file, in_out *in)
@@ -344,6 +312,7 @@ void depthwiseconv2d_load_inference(int type, FILE *file, in_out *in)
 
 void bn_load_inference(int type, FILE *file, in_out *in)
 {
+    //print_in_out(*in);
     float gamma = 1;
     float beta = 0;
     float mean = 0;
@@ -367,7 +336,7 @@ void bn_load_inference(int type, FILE *file, in_out *in)
         {
             debug("Read BN weights error!");
         }
-        
+
         //debug("%f, %f, %f, %f ", gamma, beta, mean, variance);
         for (int h = 0; h < in->h; h++)
         {
@@ -381,6 +350,7 @@ void bn_load_inference(int type, FILE *file, in_out *in)
             }
         }
     }
+    //print_in_out(*in);
 }
 
 void activation_load_inference(int type, FILE *file, in_out *in)
@@ -404,6 +374,7 @@ void activation_load_inference(int type, FILE *file, in_out *in)
                 }
             }
         }
+        //print_in_out(*in);
     }
     else if (activation_type == 2) // softmax
     {
@@ -587,6 +558,8 @@ void maxpooling_load_inference(int type, FILE *file, in_out *in)
     in->h = out.h;
     in->data = out.data;
     out.data = NULL;
+
+    //print_in_out(*in);
 }
 
 void zeropadding2d_load_inference(int type, FILE *file, in_out *in)
@@ -862,12 +835,51 @@ void yolo_v2(in_out *in, int resize_w, int resize_h)
     }
 }
 
+int read_weight(int type, void *buf, size_t size, size_t n, FILE *fp)
+{
+    if (type == 0)
+    {
+        return fread(buf, size, n, fp);
+    }
+    else if (type == 1)
+    {
+        uint32_t add = WEIGHT_ADDR_BASE + address_shift;
+        //debug("buf:%p, %d, size:%d, add:%d", add, *(char*)add, size, address_shift);
+        if (size == 1)
+        {
+            *(uint8_t *)buf = *(uint8_t *)add;
+            address_shift += 1;
+            return 1;
+        }
+        else if (size == 2)
+        {
+            *(uint16_t *)buf = *(uint16_t *)add;
+            address_shift += 2;
+            return 2;
+        }
+        else if (size == 4)
+        {
+            *(uint32_t *)buf = *(uint32_t *)add;
+            address_shift += 4;
+            return 4;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 in_out *uInference(int type, in_out *im, char *model_name)
 {
     in_out *in = im;
     FILE *file;
 
-    if(type == 0)
+    if (type == 0)
     {
         debug("model_name: %s", model_name);
         file = fopen(model_name, "rb");
@@ -877,31 +889,31 @@ in_out *uInference(int type, in_out *im, char *model_name)
             return in;
         }
     }
-    else if(type == 1)
+    else if (type == 1)
     {
-
-    } 
+    }
     else
     {
         debug("Error: type Error!");
         return in;
     }
-    
 
     int layer = 0;
     int flag_end = 0;
     while (flag_end == 0)
     {
-        int layer_type = 0;
-        if (!read_weight(type, &layer_type, sizeof(char), 1, file))
+        uint8_t layer_type = 0;
+        if (!read_weight(type, &layer_type, sizeof(uint8_t), 1, file))
         {
             debug("Read weights error!");
         }
         debug("layer type: %d", layer_type);
+
         switch (layer_type)
         {
         case 0: //End
             flag_end = 1;
+            address_shift = 0;
             debug("Read weights finished!");
             break;
         case 1: //Conv2D
@@ -972,6 +984,7 @@ in_out *uInference(int type, in_out *im, char *model_name)
             free_in_out(in);
             return in;
         }
+
         /*
         if (layer == 33)
         {
