@@ -6,4 +6,4 @@ python3 train.py \
  -reload_train 1 \
  -reload_test 1 \
  -data_path /home/neusoft/amy/uInference/data/images_base_all.list \
- -save_model ./tmp/weights_base_edge.hdf5 
+ -save_model ./tmp/weights_base_edge_all.hdf5 

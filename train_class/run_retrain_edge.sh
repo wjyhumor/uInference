@@ -22,4 +22,3 @@ python3 retrain.py \
 #python3 model2bin_server.py \
 # -input ./tmp/cubeai/network_data.c \
 # -output ./tmp/weights_retrain_edge.bin
-
