@@ -334,14 +334,14 @@ def save_weights(save_type, json_name="save_model.json", weights="save_model.h5"
 
 
 if __name__ == '__main__':
-    model_type = 0  # config and weights in one single file
-    """
+    model_type = 1  # config and weights in one single file
+    
     if model_type == 1:
-        load_model_name = '../models_class/save_model.hdf5'
-    model_name = '../models_class/save_model.json'
-    weights_name = '../models_class/save_model.h5'
-    save_name_txt = '../models_class/save_model.txt'
-    save_name_binary = '../models_class/save_model.dat'
+        load_model_name = '../models_class/weights_base_edge_4.hdf5'#save_model.hdf5'
+    model_name = '../models_class/weights_base_edge_4.json'#save_model.json'
+    weights_name = '../models_class/weights_base_edge_4.h5'#save_model.h5'
+    save_name_txt = '../models_class/weights_base_edge_4.txt'#save_model.txt'
+    save_name_binary = '../models_class/weights_base_edge_4.dat'#save_model.dat'
     """
     
     if model_type == 1:
@@ -351,7 +351,7 @@ if __name__ == '__main__':
     save_name_txt = '../models_od/tiny_yolo_ocr_7.txt'
     save_name_binary = '../models_od/tiny_yolo_ocr_7.dat'    
     """
-    
+    """
     if model_type == 1:
         load_model_name = '../models_od/mobilenet.hdf5'
     model_name = '../models_od/mobilenet.json'

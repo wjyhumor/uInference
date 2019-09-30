@@ -4,11 +4,8 @@ import re
 import numpy as np
 from PIL import Image
 
-#reload_train = True#False#
-#reload_test = True#False#
-
-resize_w = 16  # 28
-resize_h = 16  # 40
+resize_w = 16#28
+resize_h = 16#40
 mean = 122.81543917085412
 std = 77.03797602437342
 save_path = "./tmp/"
@@ -46,6 +43,8 @@ def load_data_train(file_train, reload_train):
         train_labels = []
         f = open(file_train, 'r')
         i = 0
+
+        print("Reading train images...")
         while 1:
             i += 1
             line = f.readline()
@@ -60,7 +59,8 @@ def load_data_train(file_train, reload_train):
             train_images.append(np.array(img))
             m = int(re.search('/\d/', line).group(0).strip('/'))
             train_labels.append(m)
-            print("Read train image:" + str(i))
+            #print("Read train image:" + str(i))
+        print("Reading train {} images finished.".format(i))
         # normalization----------------------------------------------
         train_images = np.asarray(train_images, dtype=np.float)
         train_labels = np.asarray(train_labels, dtype=np.int)
@@ -99,6 +99,7 @@ def load_data_test(file_test, reload_test):
         test_labels = []
         f = open(file_test, 'r')
         i = 0
+        print("Reading test images...")
         while 1:
             i += 1
             line = f.readline()
@@ -113,7 +114,8 @@ def load_data_test(file_test, reload_test):
             test_images.append(np.array(img))
             m = int(re.search('/\d/', line).group(0).strip('/'))
             test_labels.append(m)
-            print("Read test image:" + str(i))
+            #print("Read test image:" + str(i))
+        print("Reading test {} images finished.".format(i))
         test_images = np.asarray(test_images, dtype=np.float)
         test_labels = np.asarray(test_labels, dtype=np.int)
         test_images = (test_images - mean) / std

@@ -34,6 +34,7 @@ def test(file_test, load_model_name, reload_test):
 
     # load model and predict
     model = load_model(str(load_model_name))
+    print(model.summary())
     predictions = model.predict(test_images)
     """
     max_predictions = []

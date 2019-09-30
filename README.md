@@ -11,29 +11,6 @@ uInference is a inference framework which could run Classification and Object De
 ## Training (in `train_class/`)
 Run `python train.py`.
 
-## DNN model example for classification
-Layer (type)                 |Output Shape      |Param #   
------------------------------|------------------|---------------
-conv2d_1 (Conv2D)            |(None, 16, 16, 8) |208       
-batch_normalization_1        |(None, 16, 16, 8) |32        
-activation_1 (Activation)    |(None, 16, 16, 8) |0         
-max_pooling2d_1 (MaxPooling2 |(None, 8, 8, 8)   |0         
-conv2d_2 (Conv2D)            |(None, 8, 8, 16)  |3216      
-batch_normalization_2 (Batch |(None, 8, 8, 16)  |64        
-activation_2 (Activation)    |(None, 8, 8, 16)  |0         
-max_pooling2d_2 (MaxPooling2 |(None, 2, 2, 16)  |0         
-flatten_1 (Flatten)          |(None, 64)        |0         
-dense_1 (Dense)              |(None, 10)        |650       
-activation_3 (Activation)    |(None, 10)        |0         
-
-Total params: 4,170  
-Trainable params: 4,122  
-Non-trainable params: 48  
-
-* RAM:15.59KB   
-* ROM: 16.7KB
-* Speed: 5.577000 ms @Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
-
 # Object Detection
 ## Training (in `train_od/`)
 1. Generate anchors for your dataset (optional)  
@@ -132,3 +109,157 @@ Batch_size will not affect accuracy too much, but higher batch_size will need mo
 
 * Keras data format: (samples, rows, cols, channels).  
 
+# ROM limit:
+<=150 KB
+
+# Tests  
+* model_1(Total params: 4,170)  
+16 x 16:(2 old electric meter training data)   
+Train accuracy:0.9722907010613903  
+water_mechanical_190625:0.7128016085790885  
+water_electric_190911/pre:**0.5761787245135476**  
+water_electric_190911/last:0.38145859088974327  
+electric_digital_190329:0.6264975334795282  
+28 x 40:0.5432305630026809   
+
+* model_2(Total params: 4,994)  
+16 x 16:(2 old electric meter training data)   
+Train accuracy:0.9818558327581106  
+water_mechanical_190625:0.7310991957104558  
+water_electric_190911/pre:**0.6880114300481095**  
+water_electric_190911/last:0.4084054388207175  
+28 x 40:0.6077077747989276  
+
+* model_3(Total params: 9,762)   
+1. 16 x 16: (2 old electric meter training data)  
+Train accuracy:0.9864904841731584  
+water_mechanical_190625:0.7914879356568365  
+water_electric_190911/pre:**0.7585400701312373**  
+water_electric_190911/last:0.4608158220245753  
+2. **16 x 16: (2 old electric + 2 water meter training data, 0.8 data)**  
+Train accuracy:0.9811729649517024  
+water_electric_190911/pre:**0.7622418495985979**  
+water_electric_190911/last:0.5636588381601058  
+electric_digital_190329:0.6608527132202993  
+3. 16 x 16: (2 new training data)  
+Train accuracy:0.9421445101721792  
+water_electric_190911/pre:0.9764255097987266  
+water_electric_190911/last:0.8464771323357289  
+electric_mechanical_190625:**0.8928113598382023**  
+water_mechanical_190625:**0.7993297587131367**  
+electric_digital_190329:**0.952959830824803**  
+4. 16 x 16: (2 old electric + 2 water training data/pre)  
+Train accuracy:0.996622192197264  
+water_electric_190911/pre:0.7021691128640597  
+water_electric_190911/last:0.35500618047339955   
+5. 16 x 16: (2 old electric + 2 water + 2 new training data)  
+Train accuracy:0.9667317246273953  
+water_electric_190911/pre:**0.9746720353215217**  
+water_electric_190911/last:**0.8370828183531319**  
+electric_digital_190329:0.9044221283013423  
+6. 16 x 16: (2 old electric + 2 water + 1 new training data/pre)  
+Train accuracy:0.9898900122208644  
+water_electric_190911/pre:**0.9777893232809969**  
+water_electric_190911/last:0.45241038319280624  
+7. 16 x 16: (2 old electric + 2 water + 1 new training data/last)  
+Train accuracy:0.8947600172459423  
+water_electric_190911/pre:0.7937394466891291  
+water_electric_190911/last:**0.8707045735770604**  
+8. 16 x 16: (2 old electric + 2 water + 1 digital meter training data)  
+Train accuracy:0.9831158069194117  
+water_electric_190911/pre:**0.8068580335108456**  
+water_electric_190911/last:**0.5530284301975307**  
+electric_digital_190402:0.9994416527079844  
+9. **16 x 16: (2 old electric + 2 water meter training data, 0.4 data)**  
+Train accuracy:0.9804957334416904  
+water_electric_190911/pre:**0.7704896739836342**  
+water_electric_190911/last:**0.5374536465213384**  
+electric_digital_190329:**0.23185341792093186**  
+10. **16 x 16: (2 old electric + 2 water meter training data, 0.99 data)**  
+Train accuracy:0.9837837837837838  
+water_electric_190911/pre:**0.8058189375166119**
+water_electric_190911/last:**0.5601977751045792**
+electric_digital_190402:**0.5676996091568955**
+11. 28 x 40:  
+Train accuracy:0.9467696059158658  
+water_electric_190911/pre:0.5787115209844921  
+water_electric_190911/last:0.3933250927107296  
+
+* model_4(Total params: 10,994)  
+1. 16 x 16: (2 old electric meter training data)  
+Train accuracy:0.9820085929748708  
+water_mechanical_190625:0.7976541554959785  
+water_electric_190911/pre:**0.7362644499208203**  
+water_electric_190911/last:0.4595797280814356  
+2. 16 x 16: (2 old electric + 2 water meter training data, 0.8 data)  
+Train accuracy:0.9827983204659353  
+water_electric_190911/pre:**0.8188076373555007**  
+water_electric_190911/last:0.6135970334187426  
+3. 2.+dropout
+Train accuracy:0.9818501963971286  
+water_electric_190911/pre:**0.7930900116898298**  
+water_electric_190911/last:0.6274412855598039  
+4. 16 x 16: (2 new training data)  
+Train accuracy:0.9521727950629982  
+water_electric_190911/pre:0.9764255098064684  
+water_electric_190911/last:0.8605686032580504  
+electric_mechanical_190625:**0.9161818361225924**  
+water_mechanical_190625:**0.8575067024128686**  
+electric_digital_190329:**0.8430232558139535**  
+
+* model_5(Total params: 14,530)   
+1. 16 x 16: (2 old electric meter training data)    
+Train accuracy:0.9787862514066645  
+water_mechanical_190625:0.7731903485254692  
+water_electric_190911/pre:**0.7290557215145338**  
+water_electric_190911/last:0.456365883814537  
+2. 16 x 16: (2 old electric + 2 water meter training data, 0.8 data)  
+Train accuracy:0.9806311797372342  
+water_electric_190911/pre:**0.7632809455850895**  
+water_electric_190911/last:0.5977750309244516  
+
+* model_6(Total params: 19,778)  
+16 x 16:(2 old electric meter training data)   
+Train accuracy:0.9828141783669223  
+water_mechanical_190625:0.7833780160857908  
+water_electric_190911/pre:**0.6948304974672035**  
+water_electric_190911/last:0.4526576020072211  
+16 x 16:(2 old electric + 2 water meter training data, 0.8 data)  
+Train accuracy:0.9834755519436543  
+water_electric_190911/pre:**0.7222366541186653**  
+water_electric_190911/last:0.5260815822223504  
+
+* model_7
+16 x 16: (2 old electric + 2 water meter training data, 0.8 data)  
+Train accuracy:0.9806311797372342  
+water_electric_190911/pre:**0.791076763223744**  
+water_electric_190911/last:0.5728059332877655  
+
+* model_8
+16 x 16: (2 old electric + 2 water meter training data, 0.8 data)  
+Train accuracy:0.9823919815793039  
+water_electric_190911/pre:**0.8203662813274964**  
+water_electric_190911/last:0.5737948084938511
+
+* model_9
+16 x 16: (2 old electric + 2 water meter training data, 0.8 data)  
+Train accuracy:0.9833401056481105  
+water_electric_190911/pre:**0.7608130926171717**  
+water_electric_190911/last:0.620024721923069
+
+* model_server(Total params: 330,954)  
+16 x 16:(2 old electric meter training data)     
+Train accuracy:0.9891529434966966  
+water_mechanical_190625:0.7783512064343163  
+water_electric_190911/pre:**0.6745681257383562**  
+water_electric_190911/last:0.5186650185487769  
+28 x 40:0.5904155495978552  
+
+
+* Summary of test:
+1. Deeper is better, but not always better with certain amount of data (model_3 is the best now, deeper model 4, 5, 6 is worse).  
+2. Should not test on the same dataset of OCR! The similarity of one dataset is too hight that it could not give the correct result of the performance of the model. Sould use TOTALLY different dataset for test!
+3. More data is better!
+4. Separate the previous digits with last digit will improve the model, but not too much(0.003 for pre, 0.04 for last).
+5. Digital meters are mucher easier to classify than mechanical meters, don't mix digital and mechanical data to train.
+6. 16x16 -> 28x40 will greatly decrease the accuracy, reason unknown.
