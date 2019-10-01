@@ -15,7 +15,7 @@ int main()
 */
 
     /*  Classification  */
-    char *model_name = "./models_class/weights_base_edge_4.dat";
+    char *model_name = "./train_class/tmp/weights_base_edge.dat";
     //char *model_name = "./models_class/save_model.dat";
     char *filename = "./ex_class.img"; 
     int resize_w = 16;

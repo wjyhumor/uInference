@@ -104,9 +104,9 @@ def train(model_type=1,
     # build model------------------------------
     if pretrain_flag == 0:
         if model_type == 1:
-            model = models.model_9()
+            model = models.model_4()
         elif model_type == 3:
-            model = models.model_server()
+            model = models.model_4() #model_server()
     else:
         model = load_model(str(pretrained_model_name))
         print(model.summary())

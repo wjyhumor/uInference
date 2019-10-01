@@ -10,6 +10,15 @@ python3 retrain.py \
  -new_images   /home/neusoft/amy/uInference/data/beilu_0819/ \
  -save_model   ./tmp/weights_retrain_edge.hdf5 
 
+python3 convert_model.py \
+ -type 1 \
+ -model_path ./tmp/weights_retrain_edge.hdf5 \
+ -config_name ./tmp/weights_retrain_edge.json \
+ -weights_name ./tmp/weights_retrain_edge.h5 \
+ -save_name_txt ./tmp/weights_retrain_edge.txt \
+ -save_name_binary ./tmp/weights_retrain_edge.dat
+
+
 # CubeAI transform to ./tmp/cubeai/network_data.c 
 #export X_CUBE_AI_DIR=/home/neusoft/STM32Cube/Repository/Packs/STMicroelectronics/X-CUBE-AI/4.0.0
 #export PATH=$X_CUBE_AI_DIR/Utilities/linux:$PATH

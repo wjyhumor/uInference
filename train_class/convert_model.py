@@ -4,6 +4,7 @@ from keras.models import Sequential
 from keras.models import load_model
 import json
 import struct
+import argparse
 
 layer_dic = {"End":0, "Conv2D": 1, "BatchNormalization": 2, "Activation": 3, "MaxPooling2D": 4,
              "Flatten": 5, "Dense": 6, "InputLayer": 7, "Model": 8, "Reshape": 9,
@@ -13,8 +14,8 @@ padding_dic = {"valid": 1, "same": 2}
 activation_dic = {"relu": 1, "softmax": 2}
 
 # load single-file model and save model as separate files: json & weights
-def load_save_model(load_model_name, save_model_name, save_weights_name):
-    model = load_model(str(load_model_name))
+def load_save_model(model_path, save_model_name, save_weights_name):
+    model = load_model(str(model_path))
     print(model.summary())
     model_json = model.to_json()
     with open(save_model_name, "w") as json_file:
@@ -333,33 +334,49 @@ def save_weights(save_type, json_name="save_model.json", weights="save_model.h5"
     fout.close()
 
 
+argparser = argparse.ArgumentParser(description='Train OCR model')
+
+argparser.add_argument(
+    '-type',
+    type=int,
+    help='type of model, 1: one single file, 1: 2 files (json & weights)')
+
+argparser.add_argument(
+    '-model_path',
+    help='path for one single file model')
+
+argparser.add_argument(
+    '-config_name',
+    help='path for json model config')
+
+argparser.add_argument(
+    '-weights_name',
+    help='path for the weights')
+
+argparser.add_argument(
+    '-save_name_txt',
+    help='path for the model')
+
+argparser.add_argument(
+    '-save_name_binary',
+    help='path for the weights')
+
+
+def _main_(args):
+    if args.type == 1:
+        model_path = args.model_path
+    config_name = args.config_name
+    weights_name = args.weights_name
+    save_name_txt = args.save_name_txt
+    save_name_binary = args.save_name_binary
+
+    if args.type == 1:
+        load_save_model(model_path, config_name, weights_name)
+    
+    save_weights('txt', json_name=config_name, weights=weights_name, output=save_name_txt)
+    save_weights('binary', json_name=config_name, weights=weights_name, output=save_name_binary)
+
+
 if __name__ == '__main__':
-    model_type = 1  # config and weights in one single file
-    
-    if model_type == 1:
-        load_model_name = '../models_class/weights_base_edge_4.hdf5'#save_model.hdf5'
-    model_name = '../models_class/weights_base_edge_4.json'#save_model.json'
-    weights_name = '../models_class/weights_base_edge_4.h5'#save_model.h5'
-    save_name_txt = '../models_class/weights_base_edge_4.txt'#save_model.txt'
-    save_name_binary = '../models_class/weights_base_edge_4.dat'#save_model.dat'
-    """
-    
-    if model_type == 1:
-        load_model_name = '../models_od/tiny_yolo_ocr_7.hdf5'
-    model_name = '../models_od/tiny_yolo_ocr_7.json'
-    weights_name = '../models_od/tiny_yolo_ocr_7.h5'
-    save_name_txt = '../models_od/tiny_yolo_ocr_7.txt'
-    save_name_binary = '../models_od/tiny_yolo_ocr_7.dat'    
-    """
-    """
-    if model_type == 1:
-        load_model_name = '../models_od/mobilenet.hdf5'
-    model_name = '../models_od/mobilenet.json'
-    weights_name = '../models_od/mobilenet.h5'
-    save_name_txt = '../models_od/mobilenet.txt'
-    save_name_binary = '../models_od/mobilenet.dat'
-    """
-    if model_type == 1:
-        load_save_model(load_model_name, model_name, weights_name)
-    save_weights('txt', json_name=model_name, weights=weights_name, output=save_name_txt)
-    save_weights('binary', json_name=model_name, weights=weights_name, output=save_name_binary)
+    args = argparser.parse_args()
+    _main_(args)
